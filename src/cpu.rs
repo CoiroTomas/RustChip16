@@ -1,36 +1,40 @@
 use std::io::File;
 
-struct Cpu {
+enum Flags {
+    Carry = 2,
+   	Zero = 4,
+   	Overflow = 64,
+	Negative = 128,
+}
+	
+struct StateRegister {
+    bg: u8,
+	spritew: u8,
+	spriteh: u8,
+	hflip: bool,
+	vflip: bool,
+}
+	
+pub struct Cpu {
     pc: i16,
 	sp: i16,
-	r0: i16,
-	r1: i16,
-	r2: i16,
-	r3: i16,
-	r4: i16,
-	r5: i16,
-	r6: i16,
-	r7: i16,
-	r8: i16,
-	r9: i16,
-	ra: i16,
-	rb: i16,
-	rc: i16,
-	rd: i16,
-	re: i16,
-	rf: i16,
+	r: [i16, ..16],
 	flags: i8,
 	file: File,
+	state: StateRegister,
+	vblank: bool,
+	memory: [i8, ..65536],
 }
-
+	
 impl Cpu {
-    fn new(file_path: std::path::Path) -> Cpu {
-		let file = match File::open(&file_path) {
-		    Err(why) => fail!("{} {}",why.desc, file_path.display()),
-			Ok(file) => file,
-		};
-	    let cpu = Cpu {pc: 0, sp: 0, r0: 0, r1: 0, r2: 0, r3: 0, r4: 0, r5: 0, r6: 0, r7: 0,
-		    r8: 0, r9: 0, ra: 0, rb: 0, rc: 0, rd: 0, re: 0, rf: 0, flags: 0, file: file};
-		cpu
-	}
+    pub fn new(file_path: Path) -> Cpu {
+    	let file = match File::open(&file_path) {
+   		    Err(why) => fail!("{} {}",why.desc, file_path.display()),
+		    Ok(file) => file,
+	    };
+        let cpu = Cpu {pc: 0, sp: 0, r: [0, ..16], flags: 0, file: file,
+	    	state : StateRegister {bg: 0, spritew: 0, spriteh: 0, hflip: false, vflip: false,},
+	    	vblank: false, memory: [0, ..65536],};
+	    cpu
+    }
 }
