@@ -1,3 +1,4 @@
+mod opcode;
 mod cpu;
 
 fn main() {
