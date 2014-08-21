@@ -1,6 +1,7 @@
 mod cpu;
+mod opcode;
 
 fn main() {
-    let my_cpu = cpu::Cpu::new(Path::new("test.willfail",));
-	println!("Wont print but its okay");
+    let mut my_cpu = cpu::Cpu::new(Path::new("test.willfail",));
+	my_cpu.execute(opcode::Nop, 1, 2, 3);
 }

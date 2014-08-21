@@ -85,6 +85,10 @@ struct StateRegister {
 	hflip: bool,
 	vflip: bool,
 }
+
+struct Memory {
+    memory: [i8, ..65536],
+}
 	
 pub struct Cpu {
     pc: i16,
@@ -94,7 +98,13 @@ pub struct Cpu {
 	file: File,
 	vblank: bool,
 	graphics: Graphics,
-	memory: [i8, ..65536],
+	memory: Memory,
+}
+
+impl Memory {
+    pub fn new() -> Memory {
+	    Memory { memory: [0, ..65536] }
+	}
 }
 
 impl StateRegister {
@@ -139,44 +149,11 @@ impl Cpu {
 		    Ok(file) => file,
 	    };
         let cpu = Cpu {pc: 0, sp: 0, r: [0, ..16], flags: 0, file: file,
-	    	vblank: false, graphics: Graphics::new(),
-			memory: [0, ..65536],};
+	    	vblank: false, graphics: Graphics::new(), memory: Memory::new(),};
 	    cpu
     }
 	
-	fn execute(&mut self, opcode: i8, first_byte: i8, second_byte: i8, third_byte: i8) {
-	    match opcode {
-			0x00 => self.nop(),
-			0x01 => self.cls(),
-			0x02 => self.vblnk(),
-			0x03 => self.bgc(second_byte),
-			0x04 => self.spr(second_byte, third_byte),
-			0x05 => self.drw(first_byte, second_byte, third_byte),
-			0x06 => self.drwsprite(first_byte, second_byte),
-			0x07 => self.rnd(first_byte, second_byte, third_byte),
-			0x08 => self.flip(third_byte),
-			0x09 => self.snd0(),
-			0x0A => self.snd1(second_byte, third_byte),
-			0x0B => self.snd2(second_byte, third_byte),
-			0x0C => self.snd3(second_byte, third_byte),
-			0x0D => self.snp(first_byte, second_byte, third_byte),
-			0x0E => self.sng(first_byte, second_byte, third_byte),
-			0x10 => self.jmp(second_byte, third_byte),
-			0x12 => self.jx(first_byte, second_byte, third_byte),
-			0x13 => self.jme(first_byte, second_byte, third_byte),
-			0x14 => self.call(second_byte, third_byte),
-			0x15 => self.ret(),
-			0x16 => self.jmp(first_byte),
-			0x17 => self.cx(first_byte, second_byte, third_byte),
-			0x18 => self.callr(first_byte),
-			0x20 => self.ldir(first_byte, second_byte, third_byte),
-			0x21 => self.ldisp(second_byte, third_byte),
-			0x22 => self.ldm(first_byte, second_byte, third_byte),
-			0x23 => self.ldmr(first_byte),
-			0x24 => self.mov(first_byte),
-			0x30 => self.stm(first_byte, second_byte, third_byte),
-			0x31 => self.stmr(first_byte),
-			//will continue
-		}
+	pub fn execute(&mut self, opcode: Opcode, first_byte: i8, second_byte: i8, third_byte: i8) {
+	    opcode.execute(self, first_byte, second_byte, third_byte);
 	}
 }
