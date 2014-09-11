@@ -1,4 +1,9 @@
 use cpu::Cpu;
+use std::mem;
+
+pub fn basic_opcode(v: i8) -> Opcode {
+    unsafe { mem::transmute(v) }
+}
 
 pub enum Opcode {
     Nop = 0,
@@ -86,8 +91,90 @@ pub enum Opcode {
 impl Opcode {
 	pub fn execute(&self, cpu: &mut Cpu, byte1: i8, byte2: i8, byte3: i8) {
 	    match *self {
-		    Nop => {},
-			_ => fail!("Yeah"),
+		    Nop => nop(),
+			Cls => nop(),
+			Vblnk => nop(),
+			Bgc => nop(),
+			Spr => nop(),
+			Drw => nop(),
+			Drw2 => nop(),
+			Rnd => nop(),
+			Flip => nop(),
+			Snd0 => nop(),
+			Snd1 => nop(),
+			Snd2 => nop(),
+			Snd3 => nop(),
+			Snp => nop(),
+			Sng => nop(),
+			Jmp => nop(),
+			Jx => nop(),
+			Jme => nop(),
+			Call => nop(),
+			Ret => nop(),
+			Jmp2 => nop(),
+			Cx => nop(),
+			Call2 => nop(),
+			Ldi => nop(),
+			Ldi2 => nop(),
+			Ldm => nop(),
+			Ldm2 => nop(),
+			Mov => nop(),
+			Stm => nop(),
+			Stm2 => nop(),
+			Addi => nop(),
+			Add => nop(),
+			Add2 => nop(),
+			Subi => nop(),
+			Sub => nop(),
+			Sub2 => nop(),
+			Cmpi => nop(),
+			Cmp => nop(),
+			Andi => nop(),
+			And => nop(),
+			Tsti => nop(),
+			Tst => nop(),
+			Ori => nop(),
+			Or => nop(),
+			Or2 => nop(),
+			Xori => nop(),
+			Xor => nop(),
+			Xor2 => nop(),
+			Muli => nop(),
+			Mul => nop(),
+			Mul2 => nop(),
+			Divi => nop(),
+			Div => nop(),
+			Div2 => nop(),
+			Modi => nop(),
+			Mod => nop(),
+			Mod2 => nop(),
+			Remi => nop(),
+			Rem => nop(),
+			Rem2 => nop(),
+			Shl => nop(),
+			Shr => nop(),
+			Sar => nop(),
+			Shl2 => nop(),
+			Shr2 => nop(),
+			Sar2 => nop(),
+			Push => nop(),
+			Pop => nop(),
+			Pushall => nop(),
+			Popall => nop(),
+			Pushf => nop(),
+			Popf => nop(),
+			Pal => nop(),
+			Pal2 => nop(),
+			Noti => nop(),
+			Not => nop(),
+			Not2 => nop(),
+			Negi => nop(),
+			Neg => nop(),
+			Neg2 => nop(),
 		}
 	}
+}
+
+fn nop() -> () {
+	()
 }

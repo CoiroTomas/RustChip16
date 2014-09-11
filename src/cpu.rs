@@ -153,7 +153,7 @@ impl Cpu {
 	    cpu
     }
 	
-	pub fn execute(&mut self, opcode: Opcode, first_byte: i8, second_byte: i8, third_byte: i8) {
-	    opcode.execute(self, first_byte, second_byte, third_byte);
+	pub fn start_program(&mut self) -> () {
+	    //TODO initialize the necessary variables and then start the execution loop
 	}
 }
