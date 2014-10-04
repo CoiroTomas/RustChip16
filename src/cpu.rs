@@ -73,7 +73,7 @@ enum Flags {
 
 struct Graphics {
     state: StateRegister,
-	palette: [u8, ..16],
+	palette: [u64, ..16],
 	screen: [[u8, ..320], ..240],
 }
 	
@@ -137,6 +137,10 @@ impl Graphics {
 	    self.state.clear();
 	}
 	
+	pub fn set_bg(&mut self, byte: u8) -> () {
+		self.state.bg = byte;
+	}
+	
 	fn spr(self: &mut Graphics, ll: i8, hh: i8) {
 		self.state.set_spr(ll, hh);
 	}
@@ -152,6 +156,24 @@ impl Cpu {
 	    	vblank: false, graphics: Graphics::new(), memory: Memory::new(),};
 	    cpu
     }
+	
+	pub fn clear_fg_bg(&mut self) {
+		self.graphics.clear()
+	}
+	
+	pub fn set_bg(&mut self, byte: u8) -> () {
+		self.graphics.set_bg(byte);
+	}
+	
+	pub fn set_spr_wh(&mut self, ll: u8, hh: u8) -> () {
+		self.graphics.state.spritew = ll;
+		self.graphics.state.spriteh = hh;
+	}
+	
+	pub fn flip(&mut self, hor: bool, ver: bool) -> () {
+		self.graphics.state.hflip = hor;
+		self.graphics.state.vflip = ver;
+	}
 	
 	pub fn start_program(&mut self) -> () {
 	    //TODO initialize the necessary variables and then start the execution loop
