@@ -1,28 +1,11 @@
 extern crate num;
 use self::num::integer::Integer;
-use cpu::Cpu;
+use std::rand::{task_rng, Rng};
+use cpu::{Cpu, join_bytes};
 use std::mem;
 
 pub fn to_opcode(v: i8) -> Opcode {
     unsafe { mem::transmute(v) }
-}
-
-fn join_bytes(hh: i8, ll: i8) -> i16 {
-	((((hh as u8) as u16) << 8) + (ll as u8) as u16) as i16
-}
-
-fn separate_word(word: i16) -> (i8, i8) {
-	let word = word as u16;
-	let hh = (word >> 8) as u8;
-	let ll = (word & 0xff) as u8;
-	(hh as i8, ll as i8)
-}
-
-fn separate_byte(byte: i8) -> (u8, u8) {
-	let byte = byte as u8;
-	let hh = (byte >> 4) as u8;
-	let ll = byte & 0xf;
-	(hh, ll)
 }
 
 pub enum Opcode {
@@ -113,12 +96,12 @@ impl Opcode {
 	    match *self {
 		    Nop => nop(),
 			Cls => cls(cpu),
-			Vblnk => nop(),
+			Vblnk => vblnk(cpu),
 			Bgc => bgc(cpu, byte2),
 			Spr => spr(cpu, byte2 as u8, byte3 as u8),
 			Drw => nop(),
 			Drw2 => nop(),
-			Rnd => nop(),
+			Rnd => rnd(cpu, byte1, join_bytes(byte2, byte3)),
 			Flip => flip(cpu, byte3),
 			Snd0 => nop(),
 			Snd1 => nop(),
@@ -203,6 +186,12 @@ fn cls(cpu: &mut Cpu) -> () {
 	cpu.clear_fg_bg();
 }
 
+fn vblnk(cpu: &mut Cpu)-> () {
+	if !cpu.vblank {
+		cpu.pc = cpu.pc - 4
+	}
+}
+
 fn bgc(cpu: &mut Cpu, byte: i8) -> () {
 	cpu.set_bg(byte as u8);
 }
@@ -213,4 +202,8 @@ fn spr(cpu: &mut Cpu, ll: u8, hh: u8) -> () {
 
 fn flip(cpu: &mut Cpu, byte3: i8) -> () {
 	cpu.flip(byte3 > 1, byte3.is_odd())
+}
+
+fn rnd(cpu: &mut Cpu, rx: i8, max_rand: i16) -> () {
+	cpu.set_rx(rx, task_rng().gen_range(0, max_rand as u16) as i16);
 }

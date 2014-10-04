@@ -1,5 +1,5 @@
 use std::io::File;
-use opcode::Opcode;
+use opcode::{Opcode, to_opcode};
 
 //branching condition functions
 fn zero(flag_byte: i8) -> bool {
@@ -64,6 +64,24 @@ fn signed_less_than_equal(flag_byte: i8) -> bool {
 }
 //branching functions done
 
+pub fn join_bytes(hh: i8, ll: i8) -> i16 {
+	((((hh as u8) as u16) << 8) + (ll as u8) as u16) as i16
+}
+
+pub fn separate_word(word: i16) -> (i8, i8) {
+	let word = word as u16;
+	let hh = (word >> 8) as u8;
+	let ll = (word & 0xff) as u8;
+	(hh as i8, ll as i8)
+}
+
+pub fn separate_byte(byte: i8) -> (u8, u8) {
+	let byte = byte as u8;
+	let hh = (byte >> 4) as u8;
+	let ll = byte & 0xf;
+	(hh, ll)
+}
+
 enum Flags {
     Carry = 2,
    	Zero = 4,
@@ -91,12 +109,12 @@ struct Memory {
 }
 	
 pub struct Cpu {
-    pc: i16,
-	sp: i16,
-	r: [i16, ..16],
+    pub pc: i16,
+	pub sp: i16,
+	rx: [i16, ..16],
 	flags: i8,
 	file: File,
-	vblank: bool,
+	pub vblank: bool,
 	graphics: Graphics,
 	memory: Memory,
 }
@@ -104,6 +122,26 @@ pub struct Cpu {
 impl Memory {
     pub fn new() -> Memory {
 	    Memory { memory: [0, ..65536] }
+	}
+	
+	pub fn read_byte(self, dir: uint) -> i8 {
+		self.memory[dir]
+	}
+	
+	pub fn write_byte(&mut self, dir: uint, value: i8) -> () {
+		self.memory[dir] = value;
+	}
+	
+	pub fn read_word(self, dir: uint) -> i16 {
+		let ll = self.memory[dir];
+		let hh = self.memory[dir + 1];
+		join_bytes(hh, ll)
+	}
+	
+	pub fn write_word(&mut self, dir: uint, value: i16) -> () {
+		let (hh, ll) = separate_word(value);
+		self.memory[dir] = ll;
+		self.memory[dir + 1] = hh;
 	}
 }
 
@@ -152,7 +190,7 @@ impl Cpu {
    		    Err(why) => fail!("{} {}",why.desc, file_path.display()),
 		    Ok(file) => file,
 	    };
-        let cpu = Cpu {pc: 0, sp: 0, r: [0, ..16], flags: 0, file: file,
+        let cpu = Cpu {pc: 0, sp: 0, rx: [0, ..16], flags: 0, file: file,
 	    	vblank: false, graphics: Graphics::new(), memory: Memory::new(),};
 	    cpu
     }
@@ -170,9 +208,22 @@ impl Cpu {
 		self.graphics.state.spriteh = hh;
 	}
 	
+	pub fn set_rx(&mut self, rx: i8, value: i16) -> () {
+		self.rx[rx as uint] = value;
+	}
+	
 	pub fn flip(&mut self, hor: bool, ver: bool) -> () {
 		self.graphics.state.hflip = hor;
 		self.graphics.state.vflip = ver;
+	}
+	
+	pub fn step(&mut self) -> () {
+		let opcode = to_opcode(self.memory.read_byte(self.pc as uint));
+		let byte1 = self.memory.read_byte((self.pc + 1) as uint);
+		let byte2 = self.memory.read_byte((self.pc + 2) as uint);
+		let byte3 = self.memory.read_byte((self.pc + 3) as uint);
+		self.pc = self.pc + 4;
+		opcode.execute(self, byte1, byte2, byte3);
 	}
 	
 	pub fn start_program(&mut self) -> () {
