@@ -96,10 +96,10 @@ impl Opcode {
 	pub fn execute(&self, cpu: &mut Cpu, byte1: i8, byte2: i8, byte3: i8) {
 	    match *self {
 		    Nop => nop(),
-			Cls => cls(cpu),
+			Cls => cpu.clear_fg_bg(),
 			Vblnk => vblnk(cpu),
-			Bgc => bgc(cpu, byte2),
-			Spr => spr(cpu, byte2 as u8, byte3 as u8),
+			Bgc => cpu.set_bg(byte2 as u8),
+			Spr => cpu.set_spr_wh(byte2 as u8, byte3 as u8),
 			Drw => nop(),
 			Drw2 => nop(),
 			Rnd => rnd(cpu, byte1, join_bytes(byte2, byte3)),
@@ -129,9 +129,12 @@ impl Opcode {
 			Ldi2 => ldisp(cpu, join_bytes(byte2, byte3)),
 			Ldm => ldm(cpu, byte1, join_bytes(byte2, byte3)),
 			Ldm2 => ldmrx(cpu, separate_byte(byte1)),
-			Mov => nop(),
-			Stm => nop(),
-			Stm2 => nop(),
+			Mov => mov(cpu, separate_byte(byte1)),
+			Stm => stm(cpu, byte1, join_bytes(byte2, byte3)),
+			Stm2 => {
+				let (x, y) = separate_byte(byte1);
+				ldmrx(cpu, (y, x));
+			},
 			Addi => nop(),
 			Add => nop(),
 			Add2 => nop(),
@@ -190,22 +193,10 @@ fn nop() -> () {
 	()
 }
 
-fn cls(cpu: &mut Cpu) -> () {
-	cpu.clear_fg_bg();
-}
-
 fn vblnk(cpu: &mut Cpu)-> () {
 	if !cpu.vblank {
 		cpu.pc = cpu.pc - 4
 	}
-}
-
-fn bgc(cpu: &mut Cpu, byte: i8) -> () {
-	cpu.set_bg(byte as u8);
-}
-
-fn spr(cpu: &mut Cpu, ll: u8, hh: u8) -> () {
-	cpu.set_spr_wh(ll, hh);
 }
 
 fn flip(cpu: &mut Cpu, byte3: i8) -> () {
@@ -276,4 +267,9 @@ fn ldmrx(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
 fn mov(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
 	let value = cpu.get_rx(y);
 	cpu.set_rx(x, value);
+}
+
+fn stm(cpu: &mut Cpu, rx: i8, dir: i16) -> () {
+	let value = cpu.get_rx(rx);
+	cpu.memory.write_word(dir as uint, value);
 }
