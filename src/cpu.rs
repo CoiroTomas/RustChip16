@@ -28,7 +28,7 @@ enum Flags {
 
 struct Graphics {
     state: StateRegister,
-	palette: [u64, ..16],
+	palette: [u32, ..16],
 	screen: [[u8, ..320], ..240],
 }
 	
@@ -50,7 +50,6 @@ pub struct Cpu {
 	pub sp: i16,
 	rx: [i16, ..16],
 	flags: i8,
-	file: File,
 	pub vblank: bool,
 	graphics: Graphics,
 	pub memory: Memory,
@@ -127,10 +126,18 @@ impl Cpu {
    		    Err(why) => fail!("{} {}",why.desc, file_path.display()),
 		    Ok(file) => file,
 	    };
-        let cpu = Cpu {pc: 0, sp: 0, rx: [0, ..16], flags: 0, file: file,
+        let mut cpu = Cpu {pc: 0, sp: 0, rx: [0, ..16], flags: 0,
 	    	vblank: false, graphics: Graphics::new(), memory: Memory::new(),};
+		cpu.load_program(file);
 	    cpu
     }
+	
+	fn load_program(&mut self, file: File) -> () {
+		
+	}
+	
+	pub fn load_pal(&mut self, dir: i16) -> () {
+	}
 	
 	pub fn clear_fg_bg(&mut self) {
 		self.graphics.clear()
@@ -154,8 +161,8 @@ impl Cpu {
 	}
 	
 	pub fn pop_stack(&mut self) -> i16 {
-		let word = self.memory.read_word(self.sp as uint);
 		self.sp = self.sp - 2;
+		let word = self.memory.read_word(self.sp as uint);
 		word
 	}
 	
@@ -164,13 +171,33 @@ impl Cpu {
 		self.sp = self.sp + 2;
 	}
 	
+	pub fn pushall(&mut self) -> () {
+		let vec = self.rx;
+		for rx in vec.iter() {
+			self.push_stack(*rx);
+		}
+	}
+	
+	pub fn popall(&mut self) -> () {
+		for i in range(15i8, 1i8) {
+			let val = self.pop_stack();
+			self.set_rx(i, val);
+		}
+	}
+	
+	pub fn pushf(&mut self) -> () {
+		let value = ((self.flags as u8) as u16) as i16;
+		self.push_stack(value);
+	}
+	
+	pub fn popf(&mut self) -> () {
+		let value = self.pop_stack();
+		self.flags = ((value as u16) as u8) as i8;
+	}
+	
 	pub fn flip(&mut self, hor: bool, ver: bool) -> () {
 		self.graphics.state.hflip = hor;
 		self.graphics.state.vflip = ver;
-	}
-	
-	pub fn clear_flags(&mut self) -> () {
-		self.flags = 0;
 	}
 	
 	pub fn has_carry(&self) -> bool {
@@ -243,7 +270,7 @@ impl Cpu {
 	}
 	
 	pub fn step(&mut self) -> () {
-		let opcode = to_opcode(self.memory.read_byte(self.pc as uint));
+		let opcode: Opcode = to_opcode(self.memory.read_byte(self.pc as uint));
 		let byte1 = self.memory.read_byte((self.pc + 1) as uint);
 		let byte2 = self.memory.read_byte((self.pc + 2) as uint);
 		let byte3 = self.memory.read_byte((self.pc + 3) as uint);

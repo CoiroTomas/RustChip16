@@ -170,32 +170,44 @@ impl Opcode {
 				xor(cpu, (y, x), x);
 			},
 			Xor2 => xor(cpu, separate_byte(byte1), byte2),
-			Muli => nop(),
-			Mul => nop(),
-			Mul2 => nop(),
-			Divi => nop(),
-			Div => nop(),
-			Div2 => nop(),
-			Modi => nop(),
-			Mod => nop(),
-			Mod2 => nop(),
-			Remi => nop(),
-			Rem => nop(),
-			Rem2 => nop(),
-			Shl => nop(),
-			Shr => nop(),
-			Sar => nop(),
-			Shl2 => nop(),
-			Shr2 => nop(),
-			Sar2 => nop(),
-			Push => nop(),
-			Pop => nop(),
-			Pushall => nop(),
-			Popall => nop(),
-			Pushf => nop(),
-			Popf => nop(),
-			Pal => nop(),
-			Pal2 => nop(),
+			Muli => muli(cpu, byte1, join_bytes(byte2, byte3)),
+			Mul => {
+				let (y, x) = separate_byte(byte1);
+				mul(cpu, (y, x), x);
+			},
+			Mul2 => mul(cpu, separate_byte(byte1), byte2),
+			Divi => divi(cpu, byte1, join_bytes(byte2, byte3)),
+			Div => {
+				let (y, x) = separate_byte(byte1);
+				div(cpu, (y, x), x);
+			},
+			Div2 => div(cpu, separate_byte(byte1), byte2),
+			Modi => divi(cpu, byte1, join_bytes(byte2, byte3)),
+			Mod => {
+				let (y, x) = separate_byte(byte1);
+				div(cpu, (y, x), x);
+			},
+			Mod2 => div(cpu, separate_byte(byte1), byte2),
+			Remi => remi(cpu, byte1, join_bytes(byte2, byte3)),
+			Rem => {
+				let (y, x) = separate_byte(byte1);
+				rem(cpu, (y, x), x);
+			},
+			Rem2 => rem(cpu, separate_byte(byte1), byte2),
+			Shl => shl(cpu, byte1, byte2),
+			Shr => shr(cpu, byte1, byte2),
+			Sar => sar(cpu, byte1, byte2),
+			Shl2 => shl2(cpu, separate_byte(byte1)),
+			Shr2 => shr2(cpu, separate_byte(byte1)),
+			Sar2 => sar2(cpu, separate_byte(byte1)),
+			Push => push(cpu, byte1),
+			Pop => pop(cpu, byte1),
+			Pushall => cpu.pushall(),
+			Popall => cpu.popall(),
+			Pushf => cpu.pushf(),
+			Popf => cpu.popf(),
+			Pal => cpu.load_pal(join_bytes(byte2, byte3)),
+			Pal2 => pal(cpu, byte1),
 			Noti => nop(),
 			Not => nop(),
 			Not2 => nop(),
@@ -413,4 +425,121 @@ fn xor(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 	let result = rx_val ^ ry_val;
 	change_flags_bitwise(cpu, result);
 	cpu.set_rx(rz, result);
+}
+
+fn change_flags_mul(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
+	cpu.put_carry((original as u32 * value as u32) > (1 << 15));
+	cpu.put_zero(result == 0);
+	cpu.put_negative(result < 0);
+}
+
+fn muli(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result = rx_val * value;
+	change_flags_mul(cpu, rx_val, value, result);
+	cpu.set_rx(rx, result);
+}
+
+fn mul(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = rx_val * ry_val;
+	change_flags_mul(cpu, rx_val, ry_val, result);
+	cpu.set_rx(rz, result)
+}
+
+fn change_flags_div(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
+	cpu.put_carry(result * value != original);
+	cpu.put_zero(result == 0);
+	cpu.put_negative(result < 0);
+}
+
+fn divi(cpu: &mut Cpu, rx: i8, value: i16) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result: i16 = rx_val / value;
+	change_flags_div(cpu, rx_val, value, result);
+	cpu.set_rx(rx, result);
+}
+
+fn div(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = rx_val / ry_val;
+	change_flags_div(cpu, rx_val, ry_val, result);
+	cpu.set_rx(rz, result)
+}
+
+fn remi(cpu: &mut Cpu, rx: i8, value: i16) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result: i16 = rx_val % value;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn rem(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = rx_val % ry_val;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rz, result)
+}
+
+fn shl(cpu: &mut Cpu, rx: i8, n: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result = (rx_val as u16 << n as uint) as i16;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn shr(cpu: &mut Cpu, rx: i8, n: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result = (rx_val as u16 >> n as uint) as i16;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn sar(cpu: &mut Cpu, rx: i8, n: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result = rx_val >> n as uint;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn shl2(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = (rx_val as u16 << ry_val as uint) as i16;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn shr2(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = (rx_val as u16 >> ry_val as uint) as i16;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn sar2(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = rx_val >> ry_val as uint;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn push(cpu: &mut Cpu, rx: i8) -> () {
+	let value = cpu.get_rx(rx);
+	cpu.push_stack(value);
+}
+
+fn pop(cpu: &mut Cpu, rx: i8) -> () {
+	let value = cpu.pop_stack();
+	cpu.set_rx(rx, value);
+}
+
+fn pal(cpu: &mut Cpu, rx: i8) -> () {
+	let dir = cpu.get_rx(rx);
+	cpu.load_pal(dir);
 }
