@@ -53,7 +53,7 @@ pub struct Cpu {
 	file: File,
 	pub vblank: bool,
 	graphics: Graphics,
-	memory: Memory,
+	pub memory: Memory,
 }
 
 impl Memory {
@@ -120,7 +120,7 @@ impl Graphics {
 		self.state.set_spr(ll, hh);
 	}
 }
-	
+
 impl Cpu {
     pub fn new(file_path: Path) -> Cpu {
     	let file = match File::open(&file_path) {

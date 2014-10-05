@@ -125,10 +125,10 @@ impl Opcode {
 				let rx = cpu.get_rx(byte1);
 				call(cpu, rx)
 			},
-			Ldi => nop(),
-			Ldi2 => nop(),
-			Ldm => nop(),
-			Ldm2 => nop(),
+			Ldi => ldi(cpu, byte1, join_bytes(byte2, byte3)),
+			Ldi2 => ldisp(cpu, join_bytes(byte2, byte3)),
+			Ldm => ldm(cpu, byte1, join_bytes(byte2, byte3)),
+			Ldm2 => ldmrx(cpu, separate_byte(byte1)),
 			Mov => nop(),
 			Stm => nop(),
 			Stm2 => nop(),
@@ -232,8 +232,7 @@ fn jx(cpu: &mut Cpu, flag_index: i8, new_dir: i16) -> () {
 	}
 }
 
-fn jme(cpu: &mut Cpu, tuple: (i8, i8), new_dir: i16) -> () {
-	let (x, y) = tuple;
+fn jme(cpu: &mut Cpu, (y, x): (i8, i8), new_dir: i16) -> () {
 	if cpu.get_rx(x) == cpu.get_rx(y) {
 		jmp(cpu, new_dir);
 	}
@@ -254,4 +253,27 @@ fn cx(cpu: &mut Cpu, flag_index: i8, new_dir: i16) -> () {
 	if cpu.check_flags(flag_index) {
 		call(cpu, new_dir);
 	}
+}
+
+fn ldi(cpu: &mut Cpu, rx: i8, value: i16) -> () {
+	cpu.set_rx(rx, value);
+}
+
+fn ldisp(cpu: &mut Cpu, value: i16) -> () {
+	cpu.sp = value;
+}
+
+fn ldm(cpu: &mut Cpu, rx: i8, dir: i16) -> () {
+	let value = cpu.memory.read_word(dir as uint);
+	cpu.set_rx(rx, value);
+}
+
+fn ldmrx(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
+	let value = cpu.memory.read_word(cpu.get_rx(y) as uint);
+	cpu.set_rx(x, value);
+}
+
+fn mov(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
+	let value = cpu.get_rx(y);
+	cpu.set_rx(x, value);
 }
