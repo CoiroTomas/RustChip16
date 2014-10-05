@@ -1,69 +1,6 @@
 use std::io::File;
 use opcode::{Opcode, to_opcode};
 
-//branching condition functions
-fn zero(flag_byte: i8) -> bool {
-	(flag_byte & Zero as i8) == Zero as i8
-}
-
-fn non_zero(flag_byte: i8) -> bool {
-	!zero(flag_byte)
-}
-
-fn negative(flag_byte: i8) -> bool {
-	(flag_byte & Negative as i8) == Negative as i8
-}
-
-fn non_negative(flag_byte: i8) -> bool {
-	!negative(flag_byte)
-}
-
-fn positive(flag_byte: i8) -> bool {
-	non_zero(flag_byte) && non_negative(flag_byte)
-}
-
-fn overflow(flag_byte: i8) -> bool {
-	(flag_byte & Overflow as i8) == Overflow as i8
-}
-
-fn non_overflow(flag_byte: i8) -> bool {
-	!overflow(flag_byte)
-}
-
-fn above(flag_byte: i8) -> bool {
-	above_equal(flag_byte) && non_zero(flag_byte)
-}
-
-fn above_equal(flag_byte: i8) -> bool {
-	!below(flag_byte) 
-}
-
-fn below(flag_byte: i8) -> bool {
-	(flag_byte & Carry as i8) == Carry as i8
-}
-
-fn below_equal(flag_byte: i8) -> bool {
-	below(flag_byte) && zero(flag_byte)
-}
-
-fn signed_greater_than(flag_byte: i8) -> bool {
-	signed_greater_than_equal(flag_byte) && non_zero(flag_byte)
-}
-
-fn signed_greater_than_equal(flag_byte: i8) -> bool {
-	((flag_byte & Overflow as i8) == Overflow as i8)
-	== ((flag_byte & Negative as i8) == Negative as i8)
-}
-
-fn signed_less_than(flag_byte: i8) -> bool {
-	!signed_greater_than_equal(flag_byte)
-}
-
-fn signed_less_than_equal(flag_byte: i8) -> bool {
-	signed_less_than(flag_byte) && zero(flag_byte)
-}
-//branching functions done
-
 pub fn join_bytes(hh: i8, ll: i8) -> i16 {
 	((((hh as u8) as u16) << 8) + (ll as u8) as u16) as i16
 }
@@ -83,10 +20,10 @@ pub fn separate_byte(byte: i8) -> (u8, u8) {
 }
 
 enum Flags {
-    Carry = 2,
-   	Zero = 4,
-   	Overflow = 64,
-	Negative = 128,
+    Carry = 1 << 1,
+   	Zero = 1 << 2,
+   	Overflow = 1 << 6,
+	Negative = 1 << 7,
 }
 
 struct Graphics {
@@ -215,6 +152,58 @@ impl Cpu {
 	pub fn flip(&mut self, hor: bool, ver: bool) -> () {
 		self.graphics.state.hflip = hor;
 		self.graphics.state.vflip = ver;
+	}
+	
+	pub fn clear_flags(&mut self) -> () {
+		self.flags = 0;
+	}
+	
+	pub fn has_carry(&self) -> bool {
+		(Carry as i8 & self.flags) != 0
+	}
+	
+	pub fn has_zero(&self) -> bool {
+		(Zero as i8 & self.flags) != 0
+	}
+	
+	pub fn has_overflow(&self) -> bool {
+		(Overflow as i8 & self.flags) != 0
+	}
+	
+	pub fn has_negative(&self) -> bool {
+		(Negative as i8 & self.flags) != 0
+	}
+	
+	pub fn put_carry(&mut self, new_state: bool) -> () {
+		if new_state {
+			self.flags = Carry as i8 | self.flags
+		} else {
+			self.flags = Carry as i8 ^ self.flags
+		}
+	}
+	
+	pub fn put_zero(&mut self, new_state: bool) -> () {
+		if new_state {
+			self.flags = Zero as i8 | self.flags
+		} else {
+			self.flags = Zero as i8 ^ self.flags
+		}
+	}
+	
+	pub fn put_overflow(&mut self, new_state: bool) -> () {
+		if new_state {
+			self.flags = Overflow as i8 | self.flags
+		} else {
+			self.flags = Overflow as i8 ^ self.flags
+		}
+	}
+	
+	pub fn put_negative(&mut self, new_state: bool) -> () {
+		if new_state {
+			self.flags = Negative as i8 | self.flags
+		} else {
+			self.flags = Negative as i8 ^ self.flags
+		}
 	}
 	
 	pub fn step(&mut self) -> () {

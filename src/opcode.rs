@@ -25,7 +25,8 @@ pub enum Opcode {
 	Snp,
 	Sng,
 	Jmp = 0x10,
-	Jx = 0x12,
+	Jmc,
+	Jx,
 	Jme,
 	Call,
 	Ret,
@@ -109,7 +110,8 @@ impl Opcode {
 			Snd3 => nop(),
 			Snp => nop(),
 			Sng => nop(),
-			Jmp => nop(),
+			Jmp => jmp(cpu, join_bytes(byte2, byte3)),
+			Jmc => jmc(cpu, join_bytes(byte2, byte3)),
 			Jx => nop(),
 			Jme => nop(),
 			Call => nop(),
@@ -206,4 +208,14 @@ fn flip(cpu: &mut Cpu, byte3: i8) -> () {
 
 fn rnd(cpu: &mut Cpu, rx: i8, max_rand: i16) -> () {
 	cpu.set_rx(rx, task_rng().gen_range(0, max_rand as u16) as i16);
+}
+
+fn jmp(cpu: &mut Cpu, new_dir: i16) -> () {
+	cpu.pc = new_dir;
+}
+
+fn jmc(cpu: &mut Cpu, new_dir: i16) -> () {
+	if cpu.has_carry() {
+		jmp(cpu, new_dir);
+	}
 }
