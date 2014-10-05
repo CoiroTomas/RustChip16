@@ -1,7 +1,7 @@
 extern crate num;
 use self::num::integer::Integer;
 use std::rand::{task_rng, Rng};
-use cpu::{Cpu, join_bytes};
+use cpu::{Cpu, join_bytes, separate_byte};
 use std::mem;
 
 pub fn to_opcode(v: i8) -> Opcode {
@@ -112,10 +112,10 @@ impl Opcode {
 			Sng => nop(),
 			Jmp => jmp(cpu, join_bytes(byte2, byte3)),
 			Jmc => jmc(cpu, join_bytes(byte2, byte3)),
-			Jx => nop(),
-			Jme => nop(),
-			Call => nop(),
-			Ret => nop(),
+			Jx => jx(cpu, byte1, join_bytes(byte2, byte3)),
+			Jme => jme(cpu, separate_byte(byte1), join_bytes(byte2, byte3)),
+			Call => call(cpu, join_bytes(byte2, byte3)),
+			Ret => ret(cpu),
 			Jmp2 => nop(),
 			Cx => nop(),
 			Call2 => nop(),
@@ -218,4 +218,28 @@ fn jmc(cpu: &mut Cpu, new_dir: i16) -> () {
 	if cpu.has_carry() {
 		jmp(cpu, new_dir);
 	}
+}
+
+fn jx(cpu: &mut Cpu, flag_index: i8, new_dir: i16) -> () {
+	if cpu.check_flags(flag_index) {
+		jmp(cpu, new_dir);
+	}
+}
+
+fn jme(cpu: &mut Cpu, tuple: (i8, i8), new_dir: i16) -> () {
+	let (x, y) = tuple;
+	if cpu.get_rx(x) == cpu.get_rx(y) {
+		jmp(cpu, new_dir);
+	}
+}
+
+fn call(cpu: &mut Cpu, new_dir: i16) -> () {
+	let pc = cpu.pc;
+	cpu.push_stack(pc);
+	cpu.pc = new_dir;
+}
+
+fn ret(cpu: &mut Cpu) -> () {
+	let pc = cpu.pop_stack();
+	cpu.pc = pc;
 }

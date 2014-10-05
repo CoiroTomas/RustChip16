@@ -12,11 +12,11 @@ pub fn separate_word(word: i16) -> (i8, i8) {
 	(hh as i8, ll as i8)
 }
 
-pub fn separate_byte(byte: i8) -> (u8, u8) {
+pub fn separate_byte(byte: i8) -> (i8, i8) {
 	let byte = byte as u8;
 	let hh = (byte >> 4) as u8;
 	let ll = byte & 0xf;
-	(hh, ll)
+	(hh as i8, ll as i8)
 }
 
 enum Flags {
@@ -145,8 +145,23 @@ impl Cpu {
 		self.graphics.state.spriteh = hh;
 	}
 	
+	pub fn get_rx(&mut self, rx: i8) -> i16 {
+		self.rx[rx as uint]
+	}
+	
 	pub fn set_rx(&mut self, rx: i8, value: i16) -> () {
 		self.rx[rx as uint] = value;
+	}
+	
+	pub fn pop_stack(&mut self) -> i16 {
+		let word = self.memory.read_word(self.sp as uint);
+		self.sp = self.sp - 2;
+		word
+	}
+	
+	pub fn push_stack(&mut self, word: i16) -> () {
+		self.memory.write_word(self.sp as uint, word);
+		self.sp = self.sp + 2;
 	}
 	
 	pub fn flip(&mut self, hor: bool, ver: bool) -> () {
@@ -203,6 +218,27 @@ impl Cpu {
 			self.flags = Negative as i8 | self.flags
 		} else {
 			self.flags = Negative as i8 ^ self.flags
+		}
+	}
+	
+	pub fn check_flags(&self, index: i8) -> bool {
+		match index {
+			0 => self.has_zero(),
+			1 => !self.has_zero(),
+			2 => self.has_negative(),
+			3 => !self.has_negative(),
+			4 => !self.has_negative() && !self.has_zero(),
+			5 => self.has_overflow(),
+			6 => !self.has_overflow(),
+			7 => !self.has_carry() && !self.has_zero(),
+			8 => !self.has_carry(),
+			9 => self.has_carry(),
+			0xA => self.has_carry() || self.has_zero(),
+			0xB => (self.has_overflow() == self.has_negative()) && !self.has_zero(),
+			0xC => (self.has_overflow() == self.has_negative()),
+			0xD => (self.has_overflow() != self.has_negative()),
+			0xE => (self.has_overflow() != self.has_negative()) || !self.has_zero(),
+			_ => fail!(),
 		}
 	}
 	
