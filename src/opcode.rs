@@ -116,9 +116,15 @@ impl Opcode {
 			Jme => jme(cpu, separate_byte(byte1), join_bytes(byte2, byte3)),
 			Call => call(cpu, join_bytes(byte2, byte3)),
 			Ret => ret(cpu),
-			Jmp2 => nop(),
-			Cx => nop(),
-			Call2 => nop(),
+			Jmp2 => {
+				let rx = cpu.get_rx(byte1);
+				jmp(cpu, rx)
+			},
+			Cx => cx(cpu, byte1, join_bytes(byte2, byte3)),
+			Call2 => {
+				let rx = cpu.get_rx(byte1);
+				call(cpu, rx)
+			},
 			Ldi => nop(),
 			Ldi2 => nop(),
 			Ldm => nop(),
@@ -242,4 +248,10 @@ fn call(cpu: &mut Cpu, new_dir: i16) -> () {
 fn ret(cpu: &mut Cpu) -> () {
 	let pc = cpu.pop_stack();
 	cpu.pc = pc;
+}
+
+fn cx(cpu: &mut Cpu, flag_index: i8, new_dir: i16) -> () {
+	if cpu.check_flags(flag_index) {
+		call(cpu, new_dir);
+	}
 }
