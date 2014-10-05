@@ -50,6 +50,7 @@ pub enum Opcode {
 	Cmp,
 	Andi = 0x60,
 	And,
+	And2,
 	Tsti,
 	Tst,
 	Ori = 0x70,
@@ -135,18 +136,28 @@ impl Opcode {
 				let (x, y) = separate_byte(byte1);
 				ldmrx(cpu, (y, x));
 			},
-			Addi => nop(),
-			Add => nop(),
-			Add2 => nop(),
-			Subi => nop(),
-			Sub => nop(),
-			Sub2 => nop(),
-			Cmpi => nop(),
-			Cmp => nop(),
-			Andi => nop(),
-			And => nop(),
-			Tsti => nop(),
-			Tst => nop(),
+			Addi => addi(cpu, byte1, join_bytes(byte2, byte3)),
+			Add => {
+				let (y, x) = separate_byte(byte1);
+				add(cpu, (y, x), x);
+			},
+			Add2 => add(cpu, separate_byte(byte1), byte2),
+			Subi => subi(cpu, byte1, join_bytes(byte2, byte3)),
+			Sub => {
+				let (y, x) = separate_byte(byte1);
+				sub(cpu, (y, x), x);
+			},
+			Sub2 => sub(cpu, separate_byte(byte1), byte2),
+			Cmpi => {cmpi(cpu, byte1, join_bytes(byte2, byte3));},
+			Cmp => {cmp(cpu, separate_byte(byte1));},
+			Andi => andi(cpu, byte1, join_bytes(byte2, byte3)),
+			And => {
+				let (y, x) = separate_byte(byte1);
+				and(cpu, (y, x), x);
+			},
+			And2 => and(cpu, separate_byte(byte1), byte2),
+			Tsti => {tsti(cpu, byte1, join_bytes(byte2, byte3));},
+			Tst => {tst(cpu, join_bytes(byte2, byte3));},
 			Ori => nop(),
 			Or => nop(),
 			Or2 => nop(),
@@ -272,4 +283,98 @@ fn mov(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
 fn stm(cpu: &mut Cpu, rx: i8, dir: i16) -> () {
 	let value = cpu.get_rx(rx);
 	cpu.memory.write_word(dir as uint, value);
+}
+
+fn sign(number: i16) -> int{
+	if number > 0 {
+		return 1;
+	} else if number < 0 {
+		return -1;
+	} else {
+		return 0;
+	}
+}
+
+fn change_flags_add(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
+	cpu.put_carry((original as u32 + value as u32) > (1 << 15));
+	cpu.put_zero(result == 0);
+	cpu.put_overflow(sign(original) == sign(value) && sign(result) != sign(original));
+	cpu.put_negative(result < 0);
+}
+
+fn addi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result = rx_val + value;
+	change_flags_add(cpu, rx_val, value, result);
+	cpu.set_rx(rx, value);
+}
+
+fn add(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = rx_val + ry_val;
+	change_flags_add(cpu, rx_val, ry_val, result);
+	cpu.set_rx(rz, result)
+}
+
+fn change_flags_sub(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
+	cpu.put_carry((original as u32 - value as u32) > (1 << 15));
+	cpu.put_zero(result == 0);
+	cpu.put_overflow(sign(original) == sign(value) && sign(result) != sign(original));
+	cpu.put_negative(result < 0);
+}
+
+fn subi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+	let result = cmpi(cpu, rx, value);
+	cpu.set_rx(rx, result);
+}
+
+fn sub(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
+	let result = cmp(cpu, (ry, rx));
+	cpu.set_rx(rz, result);
+}
+
+fn cmpi(cpu: &mut Cpu, rx:i8, value: i16) -> i16 {
+	let rx_val = cpu.get_rx(rx);
+	let result = rx_val - value;
+	change_flags_sub(cpu, rx_val, value, result);
+	result
+}
+
+fn cmp(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> i16 {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = rx_val + ry_val;
+	change_flags_sub(cpu, rx_val, ry_val, result);
+	result
+}
+
+fn change_flags_and(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
+	cpu.put_zero(result == 0);
+	cpu.put_negative(result < 0);
+}
+
+fn andi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+	let result = tsti(cpu, rx, value);
+	cpu.set_rx(rx, result);
+}
+
+fn and(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
+	let result = tst(cpu, (ry, rx));
+	cpu.set_rx(rz, result);
+}
+
+fn tsti(cpu: &mut Cpu, rx:i8, value: i16) -> i16 {
+	let rx_val = cpu.get_rx(rx);
+	let result = rx_val & value;
+	change_flags_and(cpu, rx_val, value, result);
+	result
+}
+
+fn tst(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> i16 {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = rx_val & ry_val;
+	change_flags_and(cpu, rx_val, ry_val, result);
+	result
 }
