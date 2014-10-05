@@ -157,13 +157,19 @@ impl Opcode {
 			},
 			And2 => and(cpu, separate_byte(byte1), byte2),
 			Tsti => {tsti(cpu, byte1, join_bytes(byte2, byte3));},
-			Tst => {tst(cpu, join_bytes(byte2, byte3));},
-			Ori => nop(),
-			Or => nop(),
-			Or2 => nop(),
-			Xori => nop(),
-			Xor => nop(),
-			Xor2 => nop(),
+			Tst => {tst(cpu, separate_byte(byte1));},
+			Ori => ori(cpu, byte1, join_bytes(byte2, byte3)),
+			Or => {
+				let (y, x) = separate_byte(byte1);
+				or(cpu, (y, x), x);
+			},
+			Or2 => or(cpu, separate_byte(byte1), byte2),
+			Xori => xori(cpu, byte1, join_bytes(byte2, byte3)),
+			Xor => {
+				let (y, x) = separate_byte(byte1);
+				xor(cpu, (y, x), x);
+			},
+			Xor2 => xor(cpu, separate_byte(byte1), byte2),
 			Muli => nop(),
 			Mul => nop(),
 			Mul2 => nop(),
@@ -349,7 +355,7 @@ fn cmp(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> i16 {
 	result
 }
 
-fn change_flags_and(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
+fn change_flags_bitwise(cpu: &mut Cpu, result: i16) -> () {
 	cpu.put_zero(result == 0);
 	cpu.put_negative(result < 0);
 }
@@ -367,7 +373,7 @@ fn and(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 fn tsti(cpu: &mut Cpu, rx:i8, value: i16) -> i16 {
 	let rx_val = cpu.get_rx(rx);
 	let result = rx_val & value;
-	change_flags_and(cpu, rx_val, value, result);
+	change_flags_bitwise(cpu, result);
 	result
 }
 
@@ -375,6 +381,36 @@ fn tst(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> i16 {
 	let rx_val = cpu.get_rx(rx);
 	let ry_val = cpu.get_rx(ry);
 	let result = rx_val & ry_val;
-	change_flags_and(cpu, rx_val, ry_val, result);
+	change_flags_bitwise(cpu, result);
 	result
+}
+
+fn ori(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result = rx_val | value;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn or(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = rx_val | ry_val;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rz, result);
+}
+
+fn xori(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result = rx_val ^ value;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn xor(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = rx_val ^ ry_val;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rz, result);
 }
