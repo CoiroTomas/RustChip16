@@ -123,7 +123,7 @@ impl Graphics {
 impl Cpu {
     pub fn new(file_path: Path) -> Cpu {
     	let file = match File::open(&file_path) {
-   		    Err(why) => fail!("{} {}",why.desc, file_path.display()),
+   		    Err(why) => fail!("{} {}", why.desc, file_path.display()),
 		    Ok(file) => file,
 	    };
         let mut cpu = Cpu {pc: 0, sp: 0, rx: [0, ..16], flags: 0,

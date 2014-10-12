@@ -208,12 +208,18 @@ impl Opcode {
 			Popf => cpu.popf(),
 			Pal => cpu.load_pal(join_bytes(byte2, byte3)),
 			Pal2 => pal(cpu, byte1),
-			Noti => nop(),
-			Not => nop(),
-			Not2 => nop(),
-			Negi => nop(),
-			Neg => nop(),
-			Neg2 => nop(),
+			Noti => noti(cpu, byte1, join_bytes(byte2, byte3)),
+			Not => not(cpu, byte1, byte1),
+			Not2 => {
+				let (y, x) = separate_byte(byte1);
+				not(cpu, x, y);
+			},
+			Negi => negi(cpu, byte1, join_bytes(byte2, byte3)),
+			Neg => neg(cpu, byte1, byte1),
+			Neg2 => {
+				let (y, x) = separate_byte(byte1);
+				neg(cpu, x, y);
+			},
 		}
 	}
 }
@@ -542,4 +548,35 @@ fn pop(cpu: &mut Cpu, rx: i8) -> () {
 fn pal(cpu: &mut Cpu, rx: i8) -> () {
 	let dir = cpu.get_rx(rx);
 	cpu.load_pal(dir);
+}
+
+fn change_flags_not(cpu: &mut Cpu, result: i16) -> () {
+	cpu.put_zero(result == 0);
+	cpu.put_negative(result < 0);
+}
+
+fn noti(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+	let result = !value;
+	change_flags_not(cpu, result);
+	cpu.set_rx(rx, value);
+}
+
+fn not(cpu: &mut Cpu, rx: i8, ry: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result = !rx_val;
+	change_flags_not(cpu, result);
+	cpu.set_rx(ry, result)
+}
+
+fn negi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+	let result = -value;
+	change_flags_not(cpu, result);
+	cpu.set_rx(rx, value);
+}
+
+fn neg(cpu: &mut Cpu, rx: i8, ry: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result = -rx_val;
+	change_flags_not(cpu, result);
+	cpu.set_rx(ry, result)
 }

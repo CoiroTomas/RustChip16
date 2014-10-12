@@ -1,10 +1,11 @@
 use cpu::Cpu;
+use opcode::{to_opcode};
 mod cpu;
 mod opcode;
 
 
 fn main() {
-    let mut my_cpu = Cpu::new(Path::new("test.willfail",));
+    let mut my_cpu = Cpu::new(Path::new("C:\\tomas\\GIT\\Rust16\\src\\main.rs",));
 	my_cpu.start_program();
 	my_cpu.step();
 }
