@@ -1,5 +1,4 @@
 use cpu::Cpu;
-use opcode::{to_opcode};
 mod cpu;
 mod opcode;
 

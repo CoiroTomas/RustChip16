@@ -90,11 +90,6 @@ impl StateRegister {
 		self.fg = 0;
 		self.bg = 0;
 	}
-	
-	fn set_spr(self: &mut StateRegister, ll: i8, hh: i8) {
-		self.spritew = ll as u8;
-		self.spriteh = hh as u8;
-	}
 }
 
 impl Graphics {
@@ -113,10 +108,6 @@ impl Graphics {
 	
 	pub fn set_bg(&mut self, byte: u8) -> () {
 		self.state.bg = byte;
-	}
-	
-	fn spr(self: &mut Graphics, ll: i8, hh: i8) {
-		self.state.set_spr(ll, hh);
 	}
 }
 
@@ -137,6 +128,13 @@ impl Cpu {
 	}
 	
 	pub fn load_pal(&mut self, dir: i16) -> () {
+		for i in range(0, 15) {
+			let dir = dir as uint;
+			let high: u32 = (self.memory.read_byte(dir + (i * 3)) as i32 as u32) << 16;
+			let middle: u32 = (self.memory.read_byte(dir + (i * 3) + 1) as i32 as u32) << 8;
+			let low: u32 = self.memory.read_byte(dir + (i * 3) + 2) as i32 as u32;
+			self.graphics.palette[i] = high + middle + low;
+		}
 	}
 	
 	pub fn clear_fg_bg(&mut self) {
