@@ -1,5 +1,7 @@
-use std::io::File;
+use std::io::{File, Open, Read};
 use opcode::{Opcode, to_opcode};
+use std::io::Timer;
+use std::time::Duration;
 
 pub fn join_bytes(hh: i8, ll: i8) -> i16 {
 	((((hh as u8) as u16) << 8) + (ll as u8) as u16) as i16
@@ -113,9 +115,9 @@ impl Graphics {
 
 impl Cpu {
     pub fn new(file_path: Path) -> Cpu {
-    	let file = match File::open(&file_path) {
-   		    Err(why) => fail!("{} {}", why.desc, file_path.display()),
+    	let file = match File::open_mode(&file_path, Open, Read) {
 		    Ok(file) => file,
+   		    Err(e) => fail!("{} {}", e.desc, file_path.display()),
 	    };
         let mut cpu = Cpu {pc: 0, sp: 0, rx: [0, ..16], flags: 0,
 	    	vblank: false, graphics: Graphics::new(), memory: Memory::new(),};
@@ -123,8 +125,17 @@ impl Cpu {
 	    cpu
     }
 	
-	fn load_program(&mut self, file: File) -> () {
-		
+	fn load_program(&mut self, mut file: File) -> () {
+		//TODO: add loading of .c16 files
+		let mut i: uint = 0;
+		for byte in file.bytes() {
+			let byte = match byte {
+				Ok(number) => number as i8,
+				Err(e) => fail!("{}", e.desc),
+			};
+			self.memory.write_byte(i, byte);
+			i += 1;
+		}
 	}
 	
 	pub fn load_pal(&mut self, dir: i16) -> () {
@@ -277,6 +288,12 @@ impl Cpu {
 	}
 	
 	pub fn start_program(&mut self) -> () {
-	    //TODO initialize the necessary variables and then start the execution loop
+	    let mut timer = Timer::new().unwrap();
+		let timer = timer.periodic(Duration::microseconds(1));
+		loop {
+			timer.recv();
+			self.step();
+			//TODO: missing vblank event
+		}
 	}
 }

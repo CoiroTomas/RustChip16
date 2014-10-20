@@ -4,7 +4,6 @@ mod opcode;
 
 
 fn main() {
-    let mut my_cpu = Cpu::new(Path::new("C:\\tomas\\GIT\\Rust16\\src\\main.rs",));
-	my_cpu.start_program();
-	my_cpu.step();
+    let mut cpu = Cpu::new(Path::new("C:\\tomas\\GIT\\Rust16\\src\\main.rs",));
+	cpu.start_program();
 }
