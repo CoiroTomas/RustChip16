@@ -2,6 +2,7 @@ use std::io::{File, Open, Read};
 use opcode::{Opcode, to_opcode};
 use std::io::Timer;
 use std::time::Duration;
+use std::iter::Iterator;
 
 pub fn join_bytes(hh: i8, ll: i8) -> i16 {
 	((((hh as u8) as u16) << 8) + (ll as u8) as u16) as i16
@@ -19,6 +20,26 @@ pub fn separate_byte(byte: i8) -> (i8, i8) {
 	let hh = (byte >> 4) as u8;
 	let ll = byte & 0xf;
 	(hh as i8, ll as i8)
+}
+
+struct VblankEventIter {
+	counter: u32,
+	max: u32,
+}
+
+impl VblankEventIter {
+	fn new(max: u32) -> VblankEventIter {
+		VblankEventIter { counter: 0, max: max}
+	}
+}
+
+impl Iterator<bool> for VblankEventIter {
+	fn next(&mut self) -> Option<bool> {
+		let count = self.counter;
+		let next = (count+1) % self.max;
+		self.counter += 1;
+		Some(next == 0)
+	}
 }
 
 enum Flags {
@@ -290,10 +311,11 @@ impl Cpu {
 	pub fn start_program(&mut self) -> () {
 	    let mut timer = Timer::new().unwrap();
 		let timer = timer.periodic(Duration::microseconds(1));
-		loop {
+		let mut vblank_event = VblankEventIter::new(16000);
+		for event in vblank_event {
+			self.vblank = event;
 			timer.recv();
 			self.step();
-			//TODO: missing vblank event
 		}
 	}
 }
