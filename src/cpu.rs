@@ -295,7 +295,7 @@ impl Cpu {
 			0xC => (self.has_overflow() == self.has_negative()),
 			0xD => (self.has_overflow() != self.has_negative()),
 			0xE => (self.has_overflow() != self.has_negative()) || !self.has_zero(),
-			_ => fail!(),
+			_ => fail!("Failed to find flag: {}", index),
 		}
 	}
 	
@@ -311,7 +311,7 @@ impl Cpu {
 	pub fn start_program(&mut self) -> () {
 	    let mut timer = Timer::new().unwrap();
 		let timer = timer.periodic(Duration::microseconds(1));
-		let mut vblank_event = VblankEventIter::new(16000);
+		let mut vblank_event = VblankEventIter::new(16666);
 		for event in vblank_event {
 			self.vblank = event;
 			timer.recv();
