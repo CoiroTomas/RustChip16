@@ -1,5 +1,5 @@
-use std::io::{File, Open, Read};
-use opcode::{Opcode, to_opcode};
+use std::io::{File, Open, Read, BytesReader};
+use opcode::{Opcode,to_opcode};
 use std::io::Timer;
 use std::time::Duration;
 use std::iter::Iterator;
@@ -42,21 +42,21 @@ impl Iterator<bool> for VblankEventIter {
 	}
 }
 
-enum Flags {
-    Carry = 1 << 1,
+enum Flag {
+	Carry = 1 << 1,
    	Zero = 1 << 2,
    	Overflow = 1 << 6,
 	Negative = 1 << 7,
 }
 
 struct Graphics {
-    state: StateRegister,
+	state: StateRegister,
 	palette: [u32, ..16],
 	screen: [[u8, ..320], ..240],
 }
 	
 struct StateRegister {
-    bg: u8,
+	bg: u8,
 	fg: u8,
 	spritew: u8,
 	spriteh: u8,
@@ -65,11 +65,11 @@ struct StateRegister {
 }
 
 struct Memory {
-    memory: [i8, ..65536],
+	memory: [i8, ..65536],
 }
 	
 pub struct Cpu {
-    pub pc: i16,
+	pub pc: i16,
 	pub sp: i16,
 	rx: [i16, ..16],
 	flags: i8,
@@ -79,7 +79,7 @@ pub struct Cpu {
 }
 
 impl Memory {
-    pub fn new() -> Memory {
+	pub fn new() -> Memory {
 	    Memory { memory: [0, ..65536] }
 	}
 	
@@ -105,7 +105,7 @@ impl Memory {
 }
 
 impl StateRegister {
-    pub fn new() -> StateRegister{
+	pub fn new() -> StateRegister{
 	    StateRegister { bg: 0, fg: 0, spritew: 0, spriteh: 0, hflip: false, vflip: false,}
 	}
 	
@@ -116,7 +116,7 @@ impl StateRegister {
 }
 
 impl Graphics {
-    pub fn new() -> Graphics {
+	pub fn new() -> Graphics {
 	    Graphics {
 		    state: StateRegister::new(),
 		    palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
@@ -135,16 +135,17 @@ impl Graphics {
 }
 
 impl Cpu {
-    pub fn new(file_path: Path) -> Cpu {
-    	let file = match File::open_mode(&file_path, Open, Read) {
+	pub fn new(file_path: Path) -> Cpu {
+		let file = match File::open_mode(&file_path, Open, Read) {
 		    Ok(file) => file,
-   		    Err(e) => fail!("{} {}", e.desc, file_path.display()),
-	    };
-        let mut cpu = Cpu {pc: 0, sp: 0, rx: [0, ..16], flags: 0,
-	    	vblank: false, graphics: Graphics::new(), memory: Memory::new(),};
+   		    Err(e) => panic!("{} {}", e.desc, file_path.display()),
+		};
+		let mut cpu = Cpu {pc: 0, sp: 0, rx: [0, ..16], flags: 0,
+			vblank: false, graphics: Graphics::new(), memory: Memory::new(),
+		};
 		cpu.load_program(file);
-	    cpu
-    }
+		cpu
+	}
 	
 	fn load_program(&mut self, mut file: File) -> () {
 		//TODO: add loading of .c16 files
@@ -152,7 +153,7 @@ impl Cpu {
 		for byte in file.bytes() {
 			let byte = match byte {
 				Ok(number) => number as i8,
-				Err(e) => fail!("{}", e.desc),
+				Err(e) => panic!("{}", e.desc),
 			};
 			self.memory.write_byte(i, byte);
 			i += 1;
@@ -231,50 +232,50 @@ impl Cpu {
 	}
 	
 	pub fn has_carry(&self) -> bool {
-		(Carry as i8 & self.flags) != 0
+		(Flag::Carry as i8 & self.flags) != 0
 	}
 	
 	pub fn has_zero(&self) -> bool {
-		(Zero as i8 & self.flags) != 0
+		(Flag::Zero as i8 & self.flags) != 0
 	}
 	
 	pub fn has_overflow(&self) -> bool {
-		(Overflow as i8 & self.flags) != 0
+		(Flag::Overflow as i8 & self.flags) != 0
 	}
 	
 	pub fn has_negative(&self) -> bool {
-		(Negative as i8 & self.flags) != 0
+		(Flag::Negative as i8 & self.flags) != 0
 	}
 	
 	pub fn put_carry(&mut self, new_state: bool) -> () {
 		if new_state {
-			self.flags = Carry as i8 | self.flags
+			self.flags = Flag::Carry as i8 | self.flags
 		} else {
-			self.flags = Carry as i8 ^ self.flags
+			self.flags = Flag::Carry as i8 ^ self.flags
 		}
 	}
 	
 	pub fn put_zero(&mut self, new_state: bool) -> () {
 		if new_state {
-			self.flags = Zero as i8 | self.flags
+			self.flags = Flag::Zero as i8 | self.flags
 		} else {
-			self.flags = Zero as i8 ^ self.flags
+			self.flags = Flag::Zero as i8 ^ self.flags
 		}
 	}
 	
 	pub fn put_overflow(&mut self, new_state: bool) -> () {
 		if new_state {
-			self.flags = Overflow as i8 | self.flags
+			self.flags = Flag::Overflow as i8 | self.flags
 		} else {
-			self.flags = Overflow as i8 ^ self.flags
+			self.flags = Flag::Overflow as i8 ^ self.flags
 		}
 	}
 	
 	pub fn put_negative(&mut self, new_state: bool) -> () {
 		if new_state {
-			self.flags = Negative as i8 | self.flags
+			self.flags = Flag::Negative as i8 | self.flags
 		} else {
-			self.flags = Negative as i8 ^ self.flags
+			self.flags = Flag::Negative as i8 ^ self.flags
 		}
 	}
 	
@@ -295,7 +296,7 @@ impl Cpu {
 			0xC => (self.has_overflow() == self.has_negative()),
 			0xD => (self.has_overflow() != self.has_negative()),
 			0xE => (self.has_overflow() != self.has_negative()) || !self.has_zero(),
-			_ => fail!("Failed to find flag: {}", index),
+			_ => panic!("Failed to find flag: {}", index),
 		}
 	}
 	

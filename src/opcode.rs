@@ -3,13 +3,14 @@ use self::num::integer::Integer;
 use std::rand::{task_rng, Rng};
 use cpu::{Cpu, join_bytes, separate_byte};
 use std::mem;
+use self::Opcode::*;
 
 pub fn to_opcode(v: i8) -> Opcode {
-    unsafe { mem::transmute(v) }
+	unsafe { mem::transmute(v) }
 }
 
 pub enum Opcode {
-    Nop = 0,
+	Nop = 0,
 	Cls,
 	Vblnk,
 	Bgc,

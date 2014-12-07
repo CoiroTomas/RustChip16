@@ -1,4 +1,12 @@
 [root]
 name = "Rust16"
 version = "0.0.0"
+dependencies = [
+ "num 0.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "num"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
