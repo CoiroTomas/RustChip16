@@ -84,7 +84,7 @@ impl Memory {
 	    Memory { memory: [0, ..65536] }
 	}
 	
-	pub fn read_byte(self, dir: uint) -> i8 {
+	pub fn read_byte(&mut self, dir: uint) -> i8 {
 		self.memory[dir]
 	}
 	
@@ -92,7 +92,7 @@ impl Memory {
 		self.memory[dir] = value;
 	}
 	
-	pub fn read_word(self, dir: uint) -> i16 {
+	pub fn read_word(&mut self, dir: uint) -> i16 {
 		let ll = self.memory[dir];
 		let hh = self.memory[dir + 1];
 		join_bytes(hh, ll)

@@ -296,7 +296,8 @@ fn ldm(cpu: &mut Cpu, rx: i8, dir: i16) -> () {
 }
 
 fn ldmrx(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
-	let value = cpu.memory.read_word(cpu.get_rx(y) as uint);
+	let reg = cpu.get_rx(y) as uint;
+	let value = cpu.memory.read_word(reg);
 	cpu.set_rx(x, value);
 }
 
