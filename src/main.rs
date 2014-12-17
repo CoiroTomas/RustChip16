@@ -3,7 +3,7 @@ use cpu::Cpu;
 use std::os;
 mod cpu;
 mod opcode;
-
+mod loading;
 
 fn main() {
     let mut cpu = Cpu::new(Path::new(os::args()[1].as_slice()));

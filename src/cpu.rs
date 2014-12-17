@@ -1,8 +1,9 @@
-use std::io::{File, Open, Read, BytesReader};
-use opcode::{Opcode,to_opcode};
+use std::io::{File, Open, Read};
+use opcode::{Opcode, to_opcode};
 use std::io::Timer;
 use std::time::Duration;
 use std::iter::Iterator;
+use loading::{load_bin, load_c16};
 
 pub fn join_bytes(hh: i8, ll: i8) -> i16 {
 	((((hh as u8) as u16) << 8) + (ll as u8) as u16) as i16
@@ -136,28 +137,22 @@ impl Graphics {
 
 impl Cpu {
 	pub fn new(file_path: Path) -> Cpu {
-		let file = match File::open_mode(&file_path, Open, Read) {
+		let mut file = match File::open_mode(&file_path, Open, Read) {
 		    Ok(file) => file,
    		    Err(e) => panic!("{} {}", e.desc, file_path.display()),
 		};
+		
 		let mut cpu = Cpu {pc: 0, sp: 0, rx: [0, ..16], flags: 0,
 			vblank: false, graphics: Graphics::new(), memory: Memory::new(),
 		};
-		cpu.load_program(file);
-		cpu
-	}
-	
-	fn load_program(&mut self, mut file: File) -> () {
-		//TODO: add loading of .c16 files
-		let mut i: uint = 0;
-		for byte in file.bytes() {
-			let byte = match byte {
-				Ok(number) => number as i8,
-				Err(e) => panic!("{}", e.desc),
-			};
-			self.memory.write_byte(i, byte);
-			i += 1;
+		if file_path.extension_str() == Some("bin") {
+			load_bin(&mut file, &mut cpu)
+		} else if file_path.extension_str() == Some("c16") {
+			load_c16(&mut file, &mut cpu)
+		} else {
+			panic!("The file is not a valid extension")
 		}
+		cpu
 	}
 	
 	pub fn load_pal(&mut self, dir: i16) -> () {
