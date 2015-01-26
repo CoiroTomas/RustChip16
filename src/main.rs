@@ -1,4 +1,3 @@
-#![feature(globs)]
 use cpu::Cpu;
 use std::os;
 mod cpu;

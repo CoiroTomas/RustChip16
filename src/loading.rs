@@ -3,7 +3,7 @@ use std::io::{File, BytesReader, Seek};
 use std::io;
 
 pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {
-	let mut i: uint = 0;
+	let mut i: usize = 0;
 	for byte in file.bytes() {
 		let byte = match byte {
 			Ok(number) => number as i8,

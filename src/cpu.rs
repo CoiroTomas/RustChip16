@@ -34,7 +34,9 @@ impl VblankEventIter {
 	}
 }
 
-impl Iterator<bool> for VblankEventIter {
+impl Iterator for VblankEventIter {
+	type Item = bool;
+
 	fn next(&mut self) -> Option<bool> {
 		let count = self.counter;
 		let next = (count+1) % self.max;
@@ -52,8 +54,8 @@ enum Flag {
 
 struct Graphics {
 	state: StateRegister,
-	palette: [u32, ..16],
-	screen: [[u8, ..320], ..240],
+	palette: [u32; 16], //capacity == 16
+	screen: [[u8; 320]; 240], //capacity == 240x320
 }
 	
 struct StateRegister {
@@ -66,13 +68,13 @@ struct StateRegister {
 }
 
 struct Memory {
-	memory: [i8, ..65536],
+	memory: [i8; 65536], //capacity == 65536
 }
 	
 pub struct Cpu {
 	pub pc: i16,
 	pub sp: i16,
-	rx: [i16, ..16],
+	rx: [i16; 16], //capacity == 16
 	flags: i8,
 	pub vblank: bool,
 	graphics: Graphics,
@@ -81,24 +83,24 @@ pub struct Cpu {
 
 impl Memory {
 	pub fn new() -> Memory {
-	    Memory { memory: [0, ..65536] }
+	    Memory { memory: [0; 65536] }
 	}
 	
-	pub fn read_byte(&mut self, dir: uint) -> i8 {
+	pub fn read_byte(&mut self, dir: usize) -> i8 {
 		self.memory[dir]
 	}
 	
-	pub fn write_byte(&mut self, dir: uint, value: i8) -> () {
+	pub fn write_byte(&mut self, dir: usize, value: i8) -> () {
 		self.memory[dir] = value;
 	}
 	
-	pub fn read_word(&mut self, dir: uint) -> i16 {
+	pub fn read_word(&mut self, dir: usize) -> i16 {
 		let ll = self.memory[dir];
 		let hh = self.memory[dir + 1];
 		join_bytes(hh, ll)
 	}
 	
-	pub fn write_word(&mut self, dir: uint, value: i16) -> () {
+	pub fn write_word(&mut self, dir: usize, value: i16) -> () {
 		let (hh, ll) = separate_word(value);
 		self.memory[dir] = ll;
 		self.memory[dir + 1] = hh;
@@ -122,7 +124,7 @@ impl Graphics {
 		    state: StateRegister::new(),
 		    palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
 		        0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
-		    screen: [[0, ..320], ..240],
+		    screen: [[0; 320]; 240],
 		}
 	}
 	
@@ -142,7 +144,7 @@ impl Cpu {
    		    Err(e) => panic!("{} {}", e.desc, file_path.display()),
 		};
 		
-		let mut cpu = Cpu {pc: 0, sp: 0, rx: [0, ..16], flags: 0,
+		let mut cpu = Cpu {pc: 0, sp: 0, rx: [0; 16], flags: 0,
 			vblank: false, graphics: Graphics::new(), memory: Memory::new(),
 		};
 		if file_path.extension_str() == Some("bin") {
@@ -157,7 +159,7 @@ impl Cpu {
 	
 	pub fn load_pal(&mut self, dir: i16) -> () {
 		for i in range(0, 15) {
-			let dir = dir as uint;
+			let dir = dir as usize;
 			let high: u32 = (self.memory.read_byte(dir + (i * 3)) as i32 as u32) << 16;
 			let middle: u32 = (self.memory.read_byte(dir + (i * 3) + 1) as i32 as u32) << 8;
 			let low: u32 = self.memory.read_byte(dir + (i * 3) + 2) as i32 as u32;
@@ -179,21 +181,21 @@ impl Cpu {
 	}
 	
 	pub fn get_rx(&mut self, rx: i8) -> i16 {
-		self.rx[rx as uint]
+		self.rx[rx as usize]
 	}
 	
 	pub fn set_rx(&mut self, rx: i8, value: i16) -> () {
-		self.rx[rx as uint] = value;
+		self.rx[rx as usize] = value;
 	}
 	
 	pub fn pop_stack(&mut self) -> i16 {
 		self.sp = self.sp - 2;
-		let word = self.memory.read_word(self.sp as uint);
+		let word = self.memory.read_word(self.sp as usize);
 		word
 	}
 	
 	pub fn push_stack(&mut self, word: i16) -> () {
-		self.memory.write_word(self.sp as uint, word);
+		self.memory.write_word(self.sp as usize, word);
 		self.sp = self.sp + 2;
 	}
 	
@@ -296,10 +298,10 @@ impl Cpu {
 	}
 	
 	pub fn step(&mut self) -> () {
-		let opcode: Opcode = to_opcode(self.memory.read_byte(self.pc as uint));
-		let byte1 = self.memory.read_byte((self.pc + 1) as uint);
-		let byte2 = self.memory.read_byte((self.pc + 2) as uint);
-		let byte3 = self.memory.read_byte((self.pc + 3) as uint);
+		let opcode: Opcode = to_opcode(self.memory.read_byte(self.pc as usize));
+		let byte1 = self.memory.read_byte((self.pc + 1) as usize);
+		let byte2 = self.memory.read_byte((self.pc + 2) as usize);
+		let byte3 = self.memory.read_byte((self.pc + 3) as usize);
 		self.pc = self.pc + 4;
 		opcode.execute(self, byte1, byte2, byte3);
 	}

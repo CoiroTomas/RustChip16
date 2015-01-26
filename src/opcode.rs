@@ -1,6 +1,6 @@
 extern crate num;
 use self::num::integer::Integer;
-use std::rand::{task_rng, Rng};
+use std::rand::{thread_rng, Rng};
 use cpu::{Cpu, join_bytes, separate_byte};
 use std::mem;
 use self::Opcode::*;
@@ -240,7 +240,7 @@ fn flip(cpu: &mut Cpu, byte3: i8) -> () {
 }
 
 fn rnd(cpu: &mut Cpu, rx: i8, max_rand: i16) -> () {
-	cpu.set_rx(rx, task_rng().gen_range(0, max_rand as u16) as i16);
+	cpu.set_rx(rx, thread_rng().gen_range(0, max_rand as u16) as i16);
 }
 
 fn jmp(cpu: &mut Cpu, new_dir: i16) -> () {
@@ -291,12 +291,12 @@ fn ldisp(cpu: &mut Cpu, value: i16) -> () {
 }
 
 fn ldm(cpu: &mut Cpu, rx: i8, dir: i16) -> () {
-	let value = cpu.memory.read_word(dir as uint);
+	let value = cpu.memory.read_word(dir as usize);
 	cpu.set_rx(rx, value);
 }
 
 fn ldmrx(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
-	let reg = cpu.get_rx(y) as uint;
+	let reg = cpu.get_rx(y) as usize;
 	let value = cpu.memory.read_word(reg);
 	cpu.set_rx(x, value);
 }
@@ -308,10 +308,10 @@ fn mov(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
 
 fn stm(cpu: &mut Cpu, rx: i8, dir: i16) -> () {
 	let value = cpu.get_rx(rx);
-	cpu.memory.write_word(dir as uint, value);
+	cpu.memory.write_word(dir as usize, value);
 }
 
-fn sign(number: i16) -> int{
+fn sign(number: i16) -> i8 {
 	if number > 0 {
 		return 1;
 	} else if number < 0 {
@@ -494,21 +494,21 @@ fn rem(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 
 fn shl(cpu: &mut Cpu, rx: i8, n: i8) -> () {
 	let rx_val = cpu.get_rx(rx);
-	let result = (rx_val as u16 << n as uint) as i16;
+	let result = ((rx_val as u16) << (n as usize)) as i16;
 	change_flags_bitwise(cpu, result);
 	cpu.set_rx(rx, result);
 }
 
 fn shr(cpu: &mut Cpu, rx: i8, n: i8) -> () {
 	let rx_val = cpu.get_rx(rx);
-	let result = (rx_val as u16 >> n as uint) as i16;
+	let result = ((rx_val as u16) >> (n as usize)) as i16;
 	change_flags_bitwise(cpu, result);
 	cpu.set_rx(rx, result);
 }
 
 fn sar(cpu: &mut Cpu, rx: i8, n: i8) -> () {
 	let rx_val = cpu.get_rx(rx);
-	let result = rx_val >> n as uint;
+	let result = rx_val >> n as usize;
 	change_flags_bitwise(cpu, result);
 	cpu.set_rx(rx, result);
 }
@@ -516,7 +516,7 @@ fn sar(cpu: &mut Cpu, rx: i8, n: i8) -> () {
 fn shl2(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> () {
 	let rx_val = cpu.get_rx(rx);
 	let ry_val = cpu.get_rx(ry);
-	let result = (rx_val as u16 << ry_val as uint) as i16;
+	let result = ((rx_val as u16) << (ry_val as usize)) as i16;
 	change_flags_bitwise(cpu, result);
 	cpu.set_rx(rx, result);
 }
@@ -524,7 +524,7 @@ fn shl2(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> () {
 fn shr2(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> () {
 	let rx_val = cpu.get_rx(rx);
 	let ry_val = cpu.get_rx(ry);
-	let result = (rx_val as u16 >> ry_val as uint) as i16;
+	let result = ((rx_val as u16) >> (ry_val as usize)) as i16;
 	change_flags_bitwise(cpu, result);
 	cpu.set_rx(rx, result);
 }
@@ -532,7 +532,7 @@ fn shr2(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> () {
 fn sar2(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> () {
 	let rx_val = cpu.get_rx(rx);
 	let ry_val = cpu.get_rx(ry);
-	let result = rx_val >> ry_val as uint;
+	let result = rx_val >> ry_val as usize;
 	change_flags_bitwise(cpu, result);
 	cpu.set_rx(rx, result);
 }
