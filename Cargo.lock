@@ -2,11 +2,11 @@
 name = "Rust16"
 version = "0.1.0"
 dependencies = [
- "num 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston 0.0.1 (git+https://github.com/PistonDevelopers/piston.git)",
- "piston2d-graphics 0.0.8 (git+https://github.com/PistonDevelopers/graphics.git)",
+ "num 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston 0.0.5 (git+https://github.com/PistonDevelopers/piston.git)",
+ "piston2d-graphics 0.0.13 (git+https://github.com/PistonDevelopers/graphics.git)",
  "piston2d-opengl_graphics 0.0.6 (git+https://github.com/PistonDevelopers/opengl_graphics.git)",
- "pistoncore-sdl2_window 0.0.1 (git+https://github.com/PistonDevelopers/sdl2_window.git)",
+ "pistoncore-sdl2_window 0.0.4 (git+https://github.com/PistonDevelopers/sdl2_window.git)",
 ]
 
 [[package]]
@@ -20,84 +20,69 @@ version = "0.0.2"
 source = "git+https://github.com/tomaka/clock_ticks#75347002bc4fee853b385da8d3b50fee1c146aae"
 
 [[package]]
-name = "current"
-version = "0.0.5"
-source = "git+https://github.com/pistondevelopers/current#749a98a354a40f7fa740b1d61c94f6afbd183424"
-
-[[package]]
-name = "fps_counter"
-version = "0.0.0"
-source = "git+https://github.com/pistondevelopers/fps_counter#6e8bb78b8bda0c886d27ef4302776d6815b0c1ec"
-dependencies = [
- "time 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "freetype-rs"
 version = "0.0.6"
-source = "git+https://github.com/PistonDevelopers/freetype-rs.git#bba330b4d3dac6a04935f6fb27e31ad00fb07433"
+source = "git+https://github.com/PistonDevelopers/freetype-rs.git#b03afd3259e3ca36bf3d3dd8589b760b604e6aff"
 dependencies = [
  "bitflags 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "freetype-sys 0.0.2 (git+https://github.com/PistonDevelopers/freetype-sys)",
+ "freetype-sys 0.0.3 (git+https://github.com/PistonDevelopers/freetype-sys)",
 ]
 
 [[package]]
 name = "freetype-sys"
-version = "0.0.2"
-source = "git+https://github.com/PistonDevelopers/freetype-sys#b0c1eaa34b0d1c5689de94cb94a3f87cd22a46db"
+version = "0.0.3"
+source = "git+https://github.com/PistonDevelopers/freetype-sys#2a26c21bae00bb467366e1333bfd2ecb8012b0cf"
 dependencies = [
  "libz-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pkg-config 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pkg-config 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "gcc"
-version = "0.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
 name = "gl"
-version = "0.0.6"
-source = "git+https://github.com/bjz/gl-rs#79933ec9beaf6aedeff8d7bafddadfde7d9d5021"
+version = "0.0.8"
+source = "git+https://github.com/bjz/gl-rs#631315590bfc5b9c084f76956807eee91413c3d0"
 dependencies = [
- "gl_common 0.0.3 (git+https://github.com/bjz/gl-rs)",
- "gl_generator 0.0.12 (git+https://github.com/bjz/gl-rs)",
+ "gl_common 0.0.4 (git+https://github.com/bjz/gl-rs)",
+ "gl_generator 0.0.16 (git+https://github.com/bjz/gl-rs)",
  "khronos_api 0.0.5 (git+https://github.com/bjz/gl-rs)",
+ "libc 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "gl_common"
-version = "0.0.3"
-source = "git+https://github.com/bjz/gl-rs#79933ec9beaf6aedeff8d7bafddadfde7d9d5021"
+version = "0.0.4"
+source = "git+https://github.com/bjz/gl-rs#631315590bfc5b9c084f76956807eee91413c3d0"
+dependencies = [
+ "libc 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "gl_generator"
-version = "0.0.12"
-source = "git+https://github.com/bjz/gl-rs#79933ec9beaf6aedeff8d7bafddadfde7d9d5021"
+version = "0.0.16"
+source = "git+https://github.com/bjz/gl-rs#631315590bfc5b9c084f76956807eee91413c3d0"
 dependencies = [
- "gl_common 0.0.3 (git+https://github.com/bjz/gl-rs)",
  "khronos_api 0.0.5 (git+https://github.com/bjz/gl-rs)",
- "log 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "xml-rs 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xml-rs 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "image"
-version = "0.2.0-alpha.8"
-source = "git+https://github.com/pistondevelopers/image#da11929ddd89943c4abdc3fa3baf5d4419b841ed"
+version = "0.2.0-alpha.9"
+source = "git+https://github.com/pistondevelopers/image#b7aff0a1ad2b6b0bdc04c1a7731d502606cbafb3"
 dependencies = [
- "num 0.1.10 (git+https://github.com/rust-lang/num)",
+ "num 0.1.12 (git+https://github.com/rust-lang/num)",
 ]
 
 [[package]]
 name = "interpolation"
 version = "0.0.1"
-source = "git+https://github.com/PistonDevelopers/interpolation#81b572b9bf1b8aaaf3a9531d9d597e057ff12c2c"
+source = "git+https://github.com/PistonDevelopers/interpolation#056dfca4c3ca0b477eba7efb038ee03c5515b28e"
 
 [[package]]
 name = "khronos_api"
 version = "0.0.5"
-source = "git+https://github.com/bjz/gl-rs#79933ec9beaf6aedeff8d7bafddadfde7d9d5021"
+source = "git+https://github.com/bjz/gl-rs#631315590bfc5b9c084f76956807eee91413c3d0"
 
 [[package]]
 name = "khronos_api"
@@ -106,7 +91,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "libc"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -114,87 +99,55 @@ name = "libz-sys"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "pkg-config 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pkg-config 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "log"
-version = "0.2.0"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "num"
-version = "0.1.10"
-source = "git+https://github.com/rust-lang/num#c05cd530dbc1cc2e56f936524400b368e07ee5cb"
+version = "0.1.12"
+source = "git+https://github.com/rust-lang/num#e2f0b0d3270554d336c5908bb20a6cbbc0754e61"
 dependencies = [
- "rustc-serialize 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "num"
-version = "0.1.10"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "rustc-serialize 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "piston"
-version = "0.0.1"
-source = "git+https://github.com/PistonDevelopers/piston.git#03544414464482a3f4f73f15fa6fa02149bac3dc"
+version = "0.0.5"
+source = "git+https://github.com/PistonDevelopers/piston.git#a1f95c234d734ceeeb32bb7bc4472a0126811804"
 dependencies = [
- "current 0.0.5 (git+https://github.com/pistondevelopers/current)",
- "fps_counter 0.0.0 (git+https://github.com/pistondevelopers/fps_counter)",
- "image 0.2.0-alpha.8 (git+https://github.com/pistondevelopers/image)",
- "piston-ai_behavior 0.0.2 (git+https://github.com/pistondevelopers/ai_behavior)",
- "piston2d-drag_controller 0.0.1 (git+https://github.com/pistondevelopers/drag_controller)",
- "piston2d-graphics 0.0.8 (git+https://github.com/PistonDevelopers/graphics.git)",
- "piston2d-opengl_graphics 0.0.6 (git+https://github.com/PistonDevelopers/opengl_graphics.git)",
- "piston3d-cam 0.0.1 (git+https://github.com/pistondevelopers/cam)",
- "pistoncore-event 0.0.5 (git+https://github.com/pistondevelopers/event)",
+ "pistoncore-event 0.0.8 (git+https://github.com/pistondevelopers/event)",
  "pistoncore-input 0.0.5 (git+https://github.com/pistondevelopers/input)",
- "pistoncore-sdl2_window 0.0.1 (git+https://github.com/PistonDevelopers/sdl2_window.git)",
- "pistoncore-window 0.0.4 (git+https://github.com/pistondevelopers/window)",
- "quack 0.0.3 (git+https://github.com/PistonDevelopers/quack)",
- "read_color 0.0.2 (git+https://github.com/PistonDevelopers/read_color)",
- "sdl2 0.0.19 (git+https://github.com/AngryLawyer/rust-sdl2)",
- "select_color 0.0.0 (git+https://github.com/pistondevelopers/select_color)",
- "shader_version 0.0.1 (git+https://github.com/pistondevelopers/shader_version)",
- "vecmath 0.0.3 (git+https://github.com/PistonDevelopers/vecmath)",
-]
-
-[[package]]
-name = "piston-ai_behavior"
-version = "0.0.2"
-source = "git+https://github.com/pistondevelopers/ai_behavior#31881d410f4f2a8f8afe5850ffaf6852e968cebd"
-dependencies = [
- "pistoncore-event 0.0.5 (git+https://github.com/pistondevelopers/event)",
- "pistoncore-input 0.0.5 (git+https://github.com/pistondevelopers/input)",
- "rustc-serialize 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-window 0.0.7 (git+https://github.com/pistondevelopers/window)",
+ "quack 0.0.10 (git+https://github.com/PistonDevelopers/quack)",
 ]
 
 [[package]]
 name = "piston-texture"
 version = "0.0.1"
-source = "git+https://github.com/PistonDevelopers/texture#0380876cec71e384841d5a06ad32cb462c97be20"
-
-[[package]]
-name = "piston2d-drag_controller"
-version = "0.0.1"
-source = "git+https://github.com/pistondevelopers/drag_controller#0bd9571567d098f34b59f8322c15526051c17059"
-dependencies = [
- "pistoncore-event 0.0.5 (git+https://github.com/pistondevelopers/event)",
- "pistoncore-input 0.0.5 (git+https://github.com/pistondevelopers/input)",
-]
+source = "git+https://github.com/pistondevelopers/texture#0380876cec71e384841d5a06ad32cb462c97be20"
 
 [[package]]
 name = "piston2d-graphics"
-version = "0.0.8"
-source = "git+https://github.com/PistonDevelopers/graphics.git#c85cb506ba06c319ba81e410815c289416ad8b43"
+version = "0.0.13"
+source = "git+https://github.com/PistonDevelopers/graphics.git#743619ae1b068a3570b37673e4645c3bf4a2a136"
 dependencies = [
  "interpolation 0.0.1 (git+https://github.com/PistonDevelopers/interpolation)",
- "piston-texture 0.0.1 (git+https://github.com/PistonDevelopers/texture)",
- "quack 0.0.3 (git+https://github.com/PistonDevelopers/quack)",
+ "piston-texture 0.0.1 (git+https://github.com/pistondevelopers/texture)",
+ "quack 0.0.10 (git+https://github.com/PistonDevelopers/quack)",
  "read_color 0.0.2 (git+https://github.com/PistonDevelopers/read_color)",
  "vecmath 0.0.3 (git+https://github.com/PistonDevelopers/vecmath)",
 ]
@@ -202,45 +155,35 @@ dependencies = [
 [[package]]
 name = "piston2d-opengl_graphics"
 version = "0.0.6"
-source = "git+https://github.com/PistonDevelopers/opengl_graphics.git#b2f8663e5b2aebb2be09d76533881393f1aa2068"
+source = "git+https://github.com/PistonDevelopers/opengl_graphics.git#5d5a02f341468116c335e8673bd965b32c8e2ce6"
 dependencies = [
  "freetype-rs 0.0.6 (git+https://github.com/PistonDevelopers/freetype-rs.git)",
- "gl 0.0.6 (git+https://github.com/bjz/gl-rs)",
- "image 0.2.0-alpha.8 (git+https://github.com/pistondevelopers/image)",
+ "gl 0.0.8 (git+https://github.com/bjz/gl-rs)",
+ "image 0.2.0-alpha.9 (git+https://github.com/pistondevelopers/image)",
  "khronos_api 0.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston-texture 0.0.1 (git+https://github.com/PistonDevelopers/texture)",
- "piston2d-graphics 0.0.8 (git+https://github.com/PistonDevelopers/graphics.git)",
+ "libc 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston-texture 0.0.1 (git+https://github.com/pistondevelopers/texture)",
+ "piston2d-graphics 0.0.13 (git+https://github.com/PistonDevelopers/graphics.git)",
  "shader_version 0.0.1 (git+https://github.com/pistondevelopers/shader_version)",
 ]
 
 [[package]]
-name = "piston3d-cam"
-version = "0.0.1"
-source = "git+https://github.com/pistondevelopers/cam#2c64f4faf8949233a7793ae3f58bd35f4de4b4b7"
-dependencies = [
- "bitflags 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-event 0.0.5 (git+https://github.com/pistondevelopers/event)",
- "pistoncore-input 0.0.5 (git+https://github.com/pistondevelopers/input)",
- "vecmath 0.0.3 (git+https://github.com/PistonDevelopers/vecmath)",
-]
-
-[[package]]
 name = "pistoncore-event"
-version = "0.0.5"
-source = "git+https://github.com/pistondevelopers/event#9e6cc2e71bccb35aaf15eccae4c0bce6573f246a"
+version = "0.0.8"
+source = "git+https://github.com/pistondevelopers/event#96afe0074416bf22478149b6a17979d633fc4375"
 dependencies = [
- "pistoncore-event_loop 0.0.5 (git+https://github.com/PistonDevelopers/event_loop)",
+ "pistoncore-event_loop 0.0.10 (git+https://github.com/pistondevelopers/event_loop)",
  "pistoncore-input 0.0.5 (git+https://github.com/pistondevelopers/input)",
- "pistoncore-window 0.0.4 (git+https://github.com/pistondevelopers/window)",
+ "pistoncore-window 0.0.7 (git+https://github.com/pistondevelopers/window)",
 ]
 
 [[package]]
 name = "pistoncore-event_loop"
-version = "0.0.5"
-source = "git+https://github.com/PistonDevelopers/event_loop#e94be148edc739f1bc193ffd28d8752c67c034ed"
+version = "0.0.10"
+source = "git+https://github.com/pistondevelopers/event_loop#50dc05477eaccb3b64535cd17eae26e9108bd703"
 dependencies = [
  "clock_ticks 0.0.2 (git+https://github.com/tomaka/clock_ticks)",
- "quack 0.0.3 (git+https://github.com/PistonDevelopers/quack)",
+ "quack 0.0.10 (git+https://github.com/PistonDevelopers/quack)",
 ]
 
 [[package]]
@@ -249,41 +192,55 @@ version = "0.0.5"
 source = "git+https://github.com/pistondevelopers/input#ce3ba43c2757b20a8fc5b92e9ec388e927c451dd"
 dependencies = [
  "bitflags 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustc-serialize 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "pistoncore-sdl2_window"
-version = "0.0.1"
-source = "git+https://github.com/PistonDevelopers/sdl2_window.git#f5194c73f865e6f844c1948c80fc67a99ab5249f"
+version = "0.0.4"
+source = "git+https://github.com/PistonDevelopers/sdl2_window.git#f674c7988e8c84b807b917e5b46240f0e55080d7"
 dependencies = [
- "gl 0.0.6 (git+https://github.com/bjz/gl-rs)",
+ "gl 0.0.8 (git+https://github.com/bjz/gl-rs)",
  "pistoncore-input 0.0.5 (git+https://github.com/pistondevelopers/input)",
- "pistoncore-window 0.0.4 (git+https://github.com/pistondevelopers/window)",
- "quack 0.0.3 (git+https://github.com/PistonDevelopers/quack)",
- "sdl2 0.0.19 (git+https://github.com/AngryLawyer/rust-sdl2)",
+ "pistoncore-window 0.0.7 (git+https://github.com/pistondevelopers/window)",
+ "quack 0.0.10 (git+https://github.com/PistonDevelopers/quack)",
+ "sdl2 0.0.24 (git+https://github.com/AngryLawyer/rust-sdl2)",
  "shader_version 0.0.1 (git+https://github.com/pistondevelopers/shader_version)",
 ]
 
 [[package]]
 name = "pistoncore-window"
-version = "0.0.4"
-source = "git+https://github.com/pistondevelopers/window#ba1a2a55b26d292658d24ef79987087cf600b6eb"
+version = "0.0.7"
+source = "git+https://github.com/pistondevelopers/window#2e743eb16a74fc8577c5779a86b6eed20fe470fd"
 dependencies = [
- "pistoncore-event_loop 0.0.5 (git+https://github.com/PistonDevelopers/event_loop)",
+ "pistoncore-event_loop 0.0.10 (git+https://github.com/pistondevelopers/event_loop)",
  "pistoncore-input 0.0.5 (git+https://github.com/pistondevelopers/input)",
- "quack 0.0.3 (git+https://github.com/PistonDevelopers/quack)",
+ "quack 0.0.10 (git+https://github.com/PistonDevelopers/quack)",
 ]
 
 [[package]]
 name = "pkg-config"
-version = "0.1.6"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "pkg-config"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "quack"
-version = "0.0.3"
-source = "git+https://github.com/PistonDevelopers/quack#c0a77cda1894724d24fa57ddad4ef45489f99815"
+version = "0.0.10"
+source = "git+https://github.com/PistonDevelopers/quack#f0336126611d352a529ffd4e86134a7a6bcc5318"
+
+[[package]]
+name = "rand"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "read_color"
@@ -292,32 +249,24 @@ source = "git+https://github.com/PistonDevelopers/read_color#568723fb7d9a69833e1
 
 [[package]]
 name = "rustc-serialize"
-version = "0.2.9"
+version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "sdl2"
-version = "0.0.19"
-source = "git+https://github.com/AngryLawyer/rust-sdl2#a71083c4b95a7429607263c55a3b4a692707a1fc"
+version = "0.0.24"
+source = "git+https://github.com/AngryLawyer/rust-sdl2#efa23dcf5c52b9308ec4452ad6727e59ada1353e"
 dependencies = [
  "bitflags 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sdl2-sys 0.0.19 (git+https://github.com/AngryLawyer/rust-sdl2)",
+ "sdl2-sys 0.0.23 (git+https://github.com/AngryLawyer/rust-sdl2)",
 ]
 
 [[package]]
 name = "sdl2-sys"
-version = "0.0.19"
-source = "git+https://github.com/AngryLawyer/rust-sdl2#a71083c4b95a7429607263c55a3b4a692707a1fc"
+version = "0.0.23"
+source = "git+https://github.com/AngryLawyer/rust-sdl2#efa23dcf5c52b9308ec4452ad6727e59ada1353e"
 dependencies = [
- "pkg-config 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "select_color"
-version = "0.0.0"
-source = "git+https://github.com/pistondevelopers/select_color#a17d9aa5d5b75a3f58e7d231d3d7b76b97f3d969"
-dependencies = [
- "image 0.2.0-alpha.8 (git+https://github.com/pistondevelopers/image)",
+ "pkg-config 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -326,22 +275,13 @@ version = "0.0.1"
 source = "git+https://github.com/pistondevelopers/shader_version#71300bf707ef3cd5079eefdec8bb3a101baacf7e"
 
 [[package]]
-name = "time"
-version = "0.1.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "gcc 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "vecmath"
 version = "0.0.3"
 source = "git+https://github.com/PistonDevelopers/vecmath#3080ca140d4f856b7a6ca44f88208dfacce7809c"
 
 [[package]]
 name = "xml-rs"
-version = "0.1.15"
+version = "0.1.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",

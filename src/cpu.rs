@@ -1,6 +1,6 @@
-use std::io::{File, Open, Read};
+use std::old_io::{File, Open, Read};
 use opcode::{Opcode, to_opcode};
-use std::io::Timer;
+use std::old_io::Timer;
 use std::time::Duration;
 use std::iter::Iterator;
 use loading::{load_bin, load_c16};

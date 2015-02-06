@@ -1,6 +1,6 @@
 use cpu::{Cpu};
-use std::io::{File, BytesReader, Seek};
-use std::io;
+use std::old_io::{File, BytesReader, Seek};
+use std::old_io;
 
 pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {
 	let mut i: usize = 0;
@@ -39,13 +39,13 @@ pub fn load_c16(file: &mut File, cpu: &mut Cpu) -> () {
 		check_rom_size(file, rom_size);
 		crc32_checksum(file, checksum);
 
-		match file.seek(0x10, io::SeekSet){
+		match file.seek(0x10, old_io::SeekSet){
 			Ok(ok) => ok,
 			Err(e) => panic!("{}", e.desc)
 		};
 		load_bin(file, cpu);
 	} else {
-		match file.seek(0, io::SeekSet){
+		match file.seek(0, old_io::SeekSet){
 			Ok(ok) => ok,
 			Err(e) => panic!("{}", e.desc)
 		};
