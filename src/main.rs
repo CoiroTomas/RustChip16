@@ -1,3 +1,7 @@
+extern crate piston;
+extern crate graphics;
+extern crate opengl_graphics;
+extern crate sdl2_window;
 use cpu::Cpu;
 use std::env;
 mod cpu;
