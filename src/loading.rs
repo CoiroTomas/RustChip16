@@ -15,7 +15,7 @@ pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {
 }
 
 pub fn load_c16(file: &mut File, cpu: &mut Cpu) -> () {
-	let magic_number = match file.read_be_u64() {
+	let magic_number = match file.read_be_u32() {
 		Ok(number) => number,
 		Err(e) => panic!("{}", e.desc)
 	};
@@ -27,12 +27,12 @@ pub fn load_c16(file: &mut File, cpu: &mut Cpu) -> () {
 			Ok(rom) => rom,
 			Err(e) => panic!("{}", e.desc)
 		};
-		let checksum: u32 = match file.read_be_u32(){
-			Ok(sum) => sum,
-			Err(e) => panic!("{}", e.desc)
-		};
 		cpu.pc = match file.read_be_i16() {
 			Ok(ip) => ip,
+			Err(e) => panic!("{}", e.desc)
+		};
+		let checksum: u32 = match file.read_be_u32(){
+			Ok(sum) => sum,
 			Err(e) => panic!("{}", e.desc)
 		};
 

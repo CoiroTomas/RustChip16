@@ -1,7 +1,9 @@
 use std::old_io::{File, Open, Read};
 use opcode::{Opcode, to_opcode};
 use piston;
-use opengl_graphics;
+use sdl2_window::Sdl2Window as Window;
+use opengl_graphics::{OpenGL};
+use graphics;
 use std::old_io::Timer;
 use std::time::Duration;
 use std::iter::Iterator;
@@ -309,14 +311,17 @@ impl Cpu {
 	}
 
 	pub fn start_program(&mut self) -> () {
-		let opengl = opengl_graphics::OpenGL::_3_2;
-		let window = piston::window::WindowSettings {
-			title: "RustChip16".to_string(),
-			samples: 0,
-			size: [320, 240],
-			fullscreen: false,
-			exit_on_esc: true,
-		};
+		let opengl = OpenGL::_3_2;
+		let window = Window::new (
+			opengl,
+			piston::window::WindowSettings {
+				title: "RustChip16".to_string(),
+				samples: 0,
+				size: [320, 240],
+				fullscreen: false,
+				exit_on_esc: true,
+			}
+		);
 		let mut timer = Timer::new().unwrap();
 		let timer = timer.periodic(Duration::microseconds(1));
 		let mut vblank_event = VblankEventIter::new(16666);

@@ -8,8 +8,13 @@ mod cpu;
 mod opcode;
 mod loading;
 
-fn main() {
+fn main() { 
 	let mut args = env::args();
+	let (min, _) = args.size_hint();
+	if min < 2 {
+		println!("No ROM specified");
+		return;
+	}
 	args.next();
 	let path = args.next().unwrap().into_string().unwrap();
 	let mut cpu = Cpu::new(Path::new(path));
