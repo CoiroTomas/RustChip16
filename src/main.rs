@@ -16,7 +16,7 @@ fn main() {
 		return;
 	}
 	args.next();
-	let path = args.next().unwrap().into_string().unwrap();
+	let path = args.next().unwrap();
 	let mut cpu = Cpu::new(Path::new(path));
 	cpu.start_program();
 }
