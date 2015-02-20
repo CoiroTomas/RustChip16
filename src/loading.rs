@@ -11,23 +11,35 @@ pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {
 		};
 		cpu.memory.write_byte(i, byte);
 		i += 1;
+		println!("wrote {:x} in {:x}", byte, i-1);
 	}
 }
 
 pub fn load_c16(file: &mut File, cpu: &mut Cpu) -> () {
+	match file.seek(0x0, old_io::SeekSet){
+			Ok(ok) => ok,
+			Err(e) => panic!("{}", e.desc)
+	};
 	let magic_number = match file.read_be_u32() {
 		Ok(number) => number,
 		Err(e) => panic!("{}", e.desc)
 	};
 	if magic_number == 0x43483135 {
-		file.read_u8();
-		file.read_u8();
+		match file.read_u8() {
+			Ok(_) => {},
+			Err(e) => panic!("{}", e.desc)
+		};
+
+		match file.read_u8() {
+			Ok(version) => version,
+			Err(e) => panic!("{}", e.desc)
+		};
 
 		let rom_size: u32 = match file.read_be_u32() {
 			Ok(rom) => rom,
 			Err(e) => panic!("{}", e.desc)
 		};
-		cpu.pc = match file.read_be_i16() {
+		cpu.pc = match file.read_be_u16() {
 			Ok(ip) => ip,
 			Err(e) => panic!("{}", e.desc)
 		};

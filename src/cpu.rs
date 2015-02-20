@@ -1,5 +1,6 @@
 use std::old_io::{File, Open, Read};
-use opcode::{Opcode, to_opcode};
+use opcode::{to_opcode};
+use opcode;
 use piston;
 use sdl2_window::Sdl2Window as Window;
 use opengl_graphics::{OpenGL};
@@ -9,7 +10,7 @@ use std::time::Duration;
 use std::iter::Iterator;
 use loading::{load_bin, load_c16};
 
-pub fn join_bytes(hh: i8, ll: i8) -> i16 {
+pub fn join_bytes(ll: i8, hh: i8) -> i16 {
 	((((hh as u8) as u16) << 8) + (ll as u8) as u16) as i16
 }
 
@@ -59,7 +60,7 @@ enum Flag {
 struct Graphics {
 	state: StateRegister,
 	palette: [u32; 16], //capacity == 16
-	screen: [[u8; 320]; 240], //capacity == 240x320
+	screen: [u8 ; 76800], //capacity == 240x320
 }
 	
 struct StateRegister {
@@ -76,7 +77,7 @@ struct Memory {
 }
 	
 pub struct Cpu {
-	pub pc: i16,
+	pub pc: u16,
 	pub sp: i16,
 	rx: [i16; 16], //capacity == 16
 	flags: i8,
@@ -128,7 +129,7 @@ impl Graphics {
 		    state: StateRegister::new(),
 		    palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
 		        0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
-		    screen: [[0; 320]; 240],
+		    screen: [0; 76800],
 		}
 	}
 	
@@ -138,6 +139,10 @@ impl Graphics {
 	
 	pub fn set_bg(&mut self, byte: u8) -> () {
 		self.state.bg = byte;
+	}
+
+	pub fn drw(&mut self, mem: &Memory, spr_x: i16, spr_y: i16, spr_address: i16) -> bool {
+		false
 	}
 }
 
@@ -162,13 +167,22 @@ impl Cpu {
 	}
 	
 	pub fn load_pal(&mut self, dir: i16) -> () {
-		for i in range(0, 15) {
+		for i in 0..15 {
 			let dir = dir as usize;
 			let high: u32 = (self.memory.read_byte(dir + (i * 3)) as i32 as u32) << 16;
 			let middle: u32 = (self.memory.read_byte(dir + (i * 3) + 1) as i32 as u32) << 8;
 			let low: u32 = self.memory.read_byte(dir + (i * 3) + 2) as i32 as u32;
 			self.graphics.palette[i] = high + middle + low;
 		}
+	}
+
+	pub fn drw(&mut self, sprite_x: i16, sprite_y: i16, sprite_address: i16) -> () {
+		let carry: bool;
+		{
+			let ref memory = self.memory;
+			carry = self.graphics.drw(memory, sprite_x, sprite_y, sprite_address);
+		}
+		self.put_carry(carry);
 	}
 	
 	pub fn clear_fg_bg(&mut self) {
@@ -302,12 +316,20 @@ impl Cpu {
 	}
 	
 	pub fn step(&mut self) -> () {
-		let opcode: Opcode = to_opcode(self.memory.read_byte(self.pc as usize));
+		if self.pc >= 0xFDF0 {
+			panic!("The program accessed the stack as instructions");
+		}
+		let op_n = self.memory.read_byte(self.pc as usize);
+		let op: opcode::Opcode = to_opcode(op_n);
 		let byte1 = self.memory.read_byte((self.pc + 1) as usize);
 		let byte2 = self.memory.read_byte((self.pc + 2) as usize);
 		let byte3 = self.memory.read_byte((self.pc + 3) as usize);
+		if op_n != 0 {
+			println!("op {:x} with arguments {:x} {:x} {:x}", op_n, byte1, byte2, byte3);
+			println!("at address {:x}", self.pc);
+		}
 		self.pc = self.pc + 4;
-		opcode.execute(self, byte1, byte2, byte3);
+		op.execute(self, byte1, byte2, byte3);
 	}
 
 	pub fn start_program(&mut self) -> () {

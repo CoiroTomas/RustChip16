@@ -96,14 +96,26 @@ pub enum Opcode {
 
 impl Opcode {
 	pub fn execute(&self, cpu: &mut Cpu, byte1: i8, byte2: i8, byte3: i8) {
-	    match *self {
-		    Nop => nop(),
+		match *self {
+			Nop => nop(),
 			Cls => cpu.clear_fg_bg(),
 			Vblnk => vblnk(cpu),
 			Bgc => cpu.set_bg(byte2 as u8),
 			Spr => cpu.set_spr_wh(byte2 as u8, byte3 as u8),
-			Drw => nop(),
-			Drw2 => nop(),
+			Drw => {
+				let (ry, rx) = separate_byte(byte1);
+				let ry_val = cpu.get_rx(ry);
+				let rx_val = cpu.get_rx(rx);
+				let hhll = join_bytes(byte3, byte2);
+				cpu.drw(rx_val, ry_val, hhll);
+			}
+			Drw2 => {
+				let (ry, rx) = separate_byte(byte1);
+				let ry_val = cpu.get_rx(ry);
+				let rx_val = cpu.get_rx(rx);
+				let rz_val = cpu.get_rx(byte2);
+				cpu.drw(rx_val, ry_val, rz_val);
+			},
 			Rnd => rnd(cpu, byte1, join_bytes(byte2, byte3)),
 			Flip => flip(cpu, byte3),
 			Snd0 => nop(),
@@ -244,7 +256,7 @@ fn rnd(cpu: &mut Cpu, rx: i8, max_rand: i16) -> () {
 }
 
 fn jmp(cpu: &mut Cpu, new_dir: i16) -> () {
-	cpu.pc = new_dir;
+	cpu.pc = new_dir as u16;
 }
 
 fn jmc(cpu: &mut Cpu, new_dir: i16) -> () {
@@ -267,13 +279,14 @@ fn jme(cpu: &mut Cpu, (y, x): (i8, i8), new_dir: i16) -> () {
 
 fn call(cpu: &mut Cpu, new_dir: i16) -> () {
 	let pc = cpu.pc;
-	cpu.push_stack(pc);
-	cpu.pc = new_dir;
+	cpu.push_stack(pc as i16);
+	cpu.pc = new_dir as u16;
+	println!("{:x}", new_dir);
 }
 
 fn ret(cpu: &mut Cpu) -> () {
 	let pc = cpu.pop_stack();
-	cpu.pc = pc;
+	cpu.pc = pc as u16;
 }
 
 fn cx(cpu: &mut Cpu, flag_index: i8, new_dir: i16) -> () {
