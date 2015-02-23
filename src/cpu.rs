@@ -1,13 +1,20 @@
 use std::old_io::{File, Open, Read};
+use std::cell::RefCell;
+use std::mem::transmute;
 use opcode::{to_opcode};
 use opcode;
 use piston;
+use piston::event::{
+	events,
+	RenderArgs,
+	RenderEvent,
+	UpdateArgs,
+	UpdateEvent,
+};
 use sdl2_window::Sdl2Window as Window;
-use opengl_graphics::{OpenGL};
+use sdl2;
+use opengl_graphics::{OpenGL, Gl};
 use graphics;
-use std::old_io::Timer;
-use std::time::Duration;
-use std::iter::Iterator;
 use loading::{load_bin, load_c16};
 
 pub fn join_bytes(ll: i8, hh: i8) -> i16 {
@@ -28,28 +35,6 @@ pub fn separate_byte(byte: i8) -> (i8, i8) {
 	(hh as i8, ll as i8)
 }
 
-struct VblankEventIter {
-	counter: u32,
-	max: u32,
-}
-
-impl VblankEventIter {
-	fn new(max: u32) -> VblankEventIter {
-		VblankEventIter { counter: 0, max: max}
-	}
-}
-
-impl Iterator for VblankEventIter {
-	type Item = bool;
-
-	fn next(&mut self) -> Option<bool> {
-		let count = self.counter;
-		let next = (count+1) % self.max;
-		self.counter += 1;
-		Some(next == 0)
-	}
-}
-
 enum Flag {
 	Carry = 1 << 1,
    	Zero = 1 << 2,
@@ -60,8 +45,9 @@ enum Flag {
 struct Graphics {
 	state: StateRegister,
 	palette: [u32; 16], //capacity == 16
-	screen: [u8 ; 76800], //capacity == 240x320
-	window: Window,
+	screen: [u8 ; 76800], //capacity == 320x240
+	size: i32,
+	gl: Gl,
 }
 	
 struct StateRegister {
@@ -126,21 +112,13 @@ impl StateRegister {
 
 impl Graphics {
 	pub fn new() -> Graphics {
-	    Graphics {
+		Graphics {
 			state: StateRegister::new(),
 			palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
 				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
 			screen: [0; 76800],
-			window: Window::new(
-				OpenGL::_3_2,
-				piston::window::WindowSettings {
-				title: "RustChip16".to_string(),
-				samples: 0,
-				size: [320, 240],
-				fullscreen: false,
-				exit_on_esc: true,
-			}
-		),
+			size: 1,
+			gl: Gl::new(OpenGL::_3_2),
 		}
 	}
 	
@@ -226,7 +204,32 @@ impl Graphics {
 		hit != 0
 	}
 
-	pub fn draw_screen(&mut self) -> () {
+	pub fn draw_screen(&mut self, _: &mut Window, args: &RenderArgs) -> () {
+		let context = &graphics::Context::abs(args.width as f64, args.height as f64);
+		let mut colours: Vec<[f32;4]> = Vec::with_capacity(16);
+		for p in self.palette.iter() {
+			let mut v: Vec<f32> = vec![];
+			let v: [f32; 4] = [1.0,
+				(((p &0xFF0000)>>4) as f32) / 255.0 as f32,
+				(((p & 0xFF00) >> 2) as f32) / 255.0,
+				((p & 0xFF) as f32) / 255.0];
+			colours.push(v);
+		}
+
+		let screen = self.screen.iter();
+		let mut i: u32 = 0;
+		self.gl.draw([0, 0, args.width as i32, args.height as i32], |_, gl| {
+			graphics::clear(colours[0], gl);
+			for pixel in screen {
+				let y: f64 = ((i / 320) as f64 / args.height as f64);
+				let x: f64 = ((i & 320) as f64 / args.width as f64);
+				graphics::rectangle(
+					colours[*pixel as usize],
+					graphics::rectangle::square(x, y, 1.0),
+					context,
+					gl);
+			}
+		})
 	}
 }
 
@@ -417,15 +420,44 @@ impl Cpu {
 	}
 
 	pub fn start_program(&mut self) -> () {
-		let mut timer = Timer::new().unwrap();
-		let timer = timer.periodic(Duration::microseconds(1));
-		let mut vblank_event = VblankEventIter::new(16666);
-		for event in vblank_event {
-			self.vblank = event;			
-			timer.recv();
-			self.step();
-			if event {
-				self.graphics.draw_screen()
+		let window = RefCell::new(Window::new(
+			OpenGL::_3_2,
+			piston::window::WindowSettings {
+				title: "RustChip16".to_string(),
+				samples: 0,
+				size: [320, 240],
+				fullscreen: false,
+				exit_on_esc: true,
+			}
+		));
+
+		self.graphics.gl.load_with(|s| unsafe {
+			transmute(sdl2::video::gl_get_proc_address(s))
+		});
+
+		let mut update_delta: f64 = 0.0;
+		let mut render_delta: f64 = 0.0;
+		for e in events(&window) {
+			if let Some(u) = e.update_args() {
+				let mut dt = u.dt;
+				render_delta += dt;
+				while(dt > 0.001) {
+					dt -= 0.001;
+					update_delta += 0.001;
+					self.vblank = update_delta > (1.0 / 60.0);
+					self.step();
+					if self.vblank {
+						self.vblank = false;
+						update_delta -= (1.0 / 60.0);
+					};
+				}
+			}
+
+			if let Some(r) = e.render_args() {
+				if render_delta > (1.0 / 60.0) {
+					render_delta -= (1.0 / 60.0);
+					self.graphics.draw_screen(&mut window.borrow_mut(), &r);
+				}
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 [package]
 
 name = "Rust16"
-version = "0.2.0"
+version = "0.5.0"
 authors = ["Tomas Coiro <coirotomas@gmail.com>"]
 
 [[bin]]
@@ -19,6 +19,10 @@ git = "https://github.com/PistonDevelopers/piston.git"
 [dependencies.pistoncore-sdl2_window]
 
 git = "https://github.com/PistonDevelopers/sdl2_window.git"
+
+[dependencies.sdl2]
+
+git = "https://github.com/AngryLawyer/rust-sdl2"
 
 [dependencies.piston2d-graphics]
 
