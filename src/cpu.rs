@@ -61,6 +61,7 @@ struct Graphics {
 	state: StateRegister,
 	palette: [u32; 16], //capacity == 16
 	screen: [u8 ; 76800], //capacity == 240x320
+	window: Window,
 }
 	
 struct StateRegister {
@@ -126,10 +127,20 @@ impl StateRegister {
 impl Graphics {
 	pub fn new() -> Graphics {
 	    Graphics {
-		    state: StateRegister::new(),
-		    palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
-		        0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
-		    screen: [0; 76800],
+			state: StateRegister::new(),
+			palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
+				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
+			screen: [0; 76800],
+			window: Window::new(
+				OpenGL::_3_2,
+				piston::window::WindowSettings {
+				title: "RustChip16".to_string(),
+				samples: 0,
+				size: [320, 240],
+				fullscreen: false,
+				exit_on_esc: true,
+			}
+		),
 		}
 	}
 	
@@ -141,8 +152,81 @@ impl Graphics {
 		self.state.bg = byte;
 	}
 
-	pub fn drw(&mut self, mem: &Memory, spr_x: i16, spr_y: i16, spr_address: i16) -> bool {
-		false
+	pub fn drw(&mut self, mem: &mut Memory, spr_x: i16, spr_y: i16, spr_address: i16) -> bool {
+		if spr_x > 319
+			|| spr_y > 239
+			|| self.state.spritew == 0
+			|| self.state.spriteh == 0
+			|| (spr_x + (self.state.spritew * 2) as i16) < 0
+			|| (spr_y + self.state.spriteh as i16) < 0
+		{
+			return false;
+		}
+
+		let x_start: i16;
+		let  x_end: i16;
+		if self.state.hflip {
+			x_start = (self.state.spritew  - 1) as i16;
+			x_end = -2;
+		} else {
+			x_start = 0;
+			x_end = self.state.spritew as i16;
+		}
+
+		let y_start: i16;
+		let y_end: i16;
+		if self.state.vflip {
+			y_start = (self.state.spriteh - 1) as i16;
+			y_end = -1;
+		} else {
+			y_start = 0;
+			y_end = self.state.spriteh as i16;
+		}
+
+		let mut hit: u64 = 0;
+		let mut j: u16 = 0;
+		let mut i: u16 = 0;
+		for y in y_start..y_end {
+			i = 0;
+			for x in x_start..x_end {
+				if (i + x as u16) < 0
+					|| (i + x as u16) > 319
+					|| (j + y as u16) < 0
+					|| (j + y as u16) > 239
+				{
+					continue;
+				}
+
+				let pixels = mem.read_byte((y as u16 * self.state.spritew as u16 + x as u16) as usize);
+				let (hh_pixel, ll_pixel) = separate_byte(pixels);
+				let odd_pixel: u8;
+				let even_pixel: u8;
+				if self.state.hflip {
+					odd_pixel = ll_pixel as u8;
+					even_pixel = hh_pixel as u8;
+				} else {
+					even_pixel = ll_pixel as u8;
+					odd_pixel = hh_pixel as u8;
+				}
+
+				if (even_pixel != 0) {
+					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i) as usize] as u64;
+					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i*2) as usize] = even_pixel;
+				}
+
+				if (odd_pixel != 0) {
+					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i + 1) as usize] as u64;
+					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i*2 + 1) as usize] = odd_pixel;
+				}
+				i += 2;
+			}
+			j += 1;
+		}
+
+		hit != 0
+	}
+
+	pub fn draw_screen(&mut self) -> () {
 	}
 }
 
@@ -179,7 +263,7 @@ impl Cpu {
 	pub fn drw(&mut self, sprite_x: i16, sprite_y: i16, sprite_address: i16) -> () {
 		let carry: bool;
 		{
-			let ref memory = self.memory;
+			let ref mut memory = self.memory;
 			carry = self.graphics.drw(memory, sprite_x, sprite_y, sprite_address);
 		}
 		self.put_carry(carry);
@@ -333,17 +417,6 @@ impl Cpu {
 	}
 
 	pub fn start_program(&mut self) -> () {
-		let opengl = OpenGL::_3_2;
-		let window = Window::new (
-			opengl,
-			piston::window::WindowSettings {
-				title: "RustChip16".to_string(),
-				samples: 0,
-				size: [320, 240],
-				fullscreen: false,
-				exit_on_esc: true,
-			}
-		);
 		let mut timer = Timer::new().unwrap();
 		let timer = timer.periodic(Duration::microseconds(1));
 		let mut vblank_event = VblankEventIter::new(16666);
@@ -351,6 +424,9 @@ impl Cpu {
 			self.vblank = event;			
 			timer.recv();
 			self.step();
+			if event {
+				self.graphics.draw_screen()
+			}
 		}
 	}
 }
