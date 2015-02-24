@@ -11,7 +11,6 @@ pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {
 		};
 		cpu.memory.write_byte(i, byte);
 		i += 1;
-		println!("wrote {:x} in {:x}", byte, i-1);
 	}
 }
 

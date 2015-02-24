@@ -1,10 +1,10 @@
 extern crate piston;
 extern crate graphics;
-extern crate gfx;
-extern crate gfx_graphics;
+extern crate opengl_graphics;
 extern crate sdl2_window;
-extern crate sdl2;
-use std::mem::transmute;
+use std::cell::RefCell;
+use opengl_graphics::OpenGL;
+use sdl2_window::Sdl2Window as Window;
 use cpu::Cpu;
 use std::env;
 mod cpu;
@@ -20,6 +20,16 @@ fn main() {
 	}
 	args.next();
 	let path = args.next().unwrap();
+	let window = RefCell::new(Window::new(
+		OpenGL::_3_2,
+		piston::window::WindowSettings {
+			title: "RustChip16".to_string(),
+			samples: 0,
+			size: [320, 240],
+			fullscreen: false,
+			exit_on_esc: true,
+		}
+	));
 	let mut cpu = Cpu::new(Path::new(path));
-	cpu.start_program();
+	cpu.start_program(window);
 }

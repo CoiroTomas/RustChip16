@@ -12,10 +12,9 @@ use piston::event::{
 	UpdateEvent,
 };
 use sdl2_window::Sdl2Window as Window;
-use sdl2;
-use gfx::{Device, DeviceExt};
-use gfx_graphics::{
-	G2D
+use opengl_graphics::{
+	Gl,
+	OpenGL,
 };
 use graphics;
 use loading::{load_bin, load_c16};
@@ -50,9 +49,7 @@ struct Graphics {
 	palette: [u32; 16], //capacity == 16
 	screen: [u8 ; 76800], //capacity == 320x240
 	size: i32,
-	device: gfx::GlDevice,
-	renderer: isize,
-	g2d: G2D,
+	gl: Gl,
 }
 	
 struct StateRegister {
@@ -117,19 +114,13 @@ impl StateRegister {
 
 impl Graphics {
 	pub fn new() -> Graphics {
-		let mut device = gfx::GlDevice::new(|s| unsafe {
-			transmute(sdl2::video::gl_get_proc_address(s))
-		});
-		
 		Graphics {
 			state: StateRegister::new(),
 			palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
 				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
 			screen: [0; 76800],
 			size: 1,
-			device: device,
-			renderer: device.create_renderer(),
-			g2d: G2D::new(&mut device),
+			gl: Gl::new(OpenGL::_3_2),
 		}
 	}
 	
@@ -252,7 +243,8 @@ impl Cpu {
 		};
 		
 		let mut cpu = Cpu {pc: 0, sp: 0, rx: [0; 16], flags: 0,
-			vblank: false, graphics: Graphics::new(), memory: Memory::new(),
+			vblank: false, graphics: Graphics::new(),
+			memory: Memory::new(),
 		};
 		if file_path.extension_str() == Some("bin") {
 			load_bin(&mut file, &mut cpu)
@@ -422,26 +414,11 @@ impl Cpu {
 		let byte1 = self.memory.read_byte((self.pc + 1) as usize);
 		let byte2 = self.memory.read_byte((self.pc + 2) as usize);
 		let byte3 = self.memory.read_byte((self.pc + 3) as usize);
-		if op_n != 0 {
-			println!("op {:x} with arguments {:x} {:x} {:x}", op_n, byte1, byte2, byte3);
-			println!("at address {:x}", self.pc);
-		}
 		self.pc = self.pc + 4;
 		op.execute(self, byte1, byte2, byte3);
 	}
 
-	pub fn start_program(&mut self) -> () {
-		let window = RefCell::new(Window::new(
-			OpenGL::_3_2,
-			piston::window::WindowSettings {
-				title: "RustChip16".to_string(),
-				samples: 0,
-				size: [320, 240],
-				fullscreen: false,
-				exit_on_esc: true,
-			}
-		));
-
+	pub fn start_program(&mut self, window: RefCell<Window>) -> () {		
 		let mut update_delta: f64 = 0.0;
 		let mut render_delta: f64 = 0.0;
 		for e in events(&window) {

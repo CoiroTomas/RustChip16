@@ -281,7 +281,6 @@ fn call(cpu: &mut Cpu, new_dir: i16) -> () {
 	let pc = cpu.pc;
 	cpu.push_stack(pc as i16);
 	cpu.pc = new_dir as u16;
-	println!("{:x}", new_dir);
 }
 
 fn ret(cpu: &mut Cpu) -> () {
