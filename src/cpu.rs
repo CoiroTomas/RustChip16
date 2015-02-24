@@ -211,10 +211,11 @@ impl Graphics {
 		let mut colours: Vec<[f32;4]> = Vec::with_capacity(16);
 		for p in self.palette.iter() {
 			let mut v: Vec<f32> = vec![];
-			let v: [f32; 4] = [1.0,
+			let v: [f32; 4] = [
 				(((p &0xFF0000)>>4) as f32) / 255.0 as f32,
 				(((p & 0xFF00) >> 2) as f32) / 255.0,
-				((p & 0xFF) as f32) / 255.0];
+				((p & 0xFF) as f32) / 255.0,
+				1.0,];
 			colours.push(v);
 		}
 
@@ -227,7 +228,7 @@ impl Graphics {
 				let x: f64 = ((i & 320) as f64 / args.width as f64);
 				graphics::rectangle(
 					colours[*pixel as usize],
-					graphics::rectangle::square(x, y, 1.0),
+					graphics::rectangle::square(x, y, 1.0/255.0),
 					context,
 					gl);
 			}
