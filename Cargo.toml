@@ -12,6 +12,10 @@ name = "rust-chip16"
 
 num = "*"
 
+[dependencies.gl]
+
+git = "https://github.com/bjz/gl-rs"
+
 [dependencies.piston]
 
 git = "https://github.com/PistonDevelopers/piston.git"
@@ -28,6 +32,6 @@ git = "https://github.com/AngryLawyer/rust-sdl2"
 
 git = "https://github.com/PistonDevelopers/graphics.git"
 
-[dependencies.piston2d-opengl_graphics]
+[dependencies.piston2d-gfx_graphics]
 
-git = "https://github.com/PistonDevelopers/opengl_graphics.git"
+git = "https://github.com/PistonDevelopers/gfx_graphics.git"

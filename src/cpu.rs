@@ -13,7 +13,10 @@ use piston::event::{
 };
 use sdl2_window::Sdl2Window as Window;
 use sdl2;
-use opengl_graphics::{OpenGL, Gl};
+use gfx::{Device, DeviceExt};
+use gfx_graphics::{
+	G2D
+};
 use graphics;
 use loading::{load_bin, load_c16};
 
@@ -47,7 +50,9 @@ struct Graphics {
 	palette: [u32; 16], //capacity == 16
 	screen: [u8 ; 76800], //capacity == 320x240
 	size: i32,
-	gl: Gl,
+	device: gfx::GlDevice,
+	renderer: isize,
+	g2d: G2D,
 }
 	
 struct StateRegister {
@@ -112,13 +117,19 @@ impl StateRegister {
 
 impl Graphics {
 	pub fn new() -> Graphics {
+		let mut device = gfx::GlDevice::new(|s| unsafe {
+			transmute(sdl2::video::gl_get_proc_address(s))
+		});
+		
 		Graphics {
 			state: StateRegister::new(),
 			palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
 				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
 			screen: [0; 76800],
 			size: 1,
-			gl: Gl::new(OpenGL::_3_2),
+			device: device,
+			renderer: device.create_renderer(),
+			g2d: G2D::new(&mut device),
 		}
 	}
 	
@@ -430,10 +441,6 @@ impl Cpu {
 				exit_on_esc: true,
 			}
 		));
-
-		self.graphics.gl.load_with(|s| unsafe {
-			transmute(sdl2::video::gl_get_proc_address(s))
-		});
 
 		let mut update_delta: f64 = 0.0;
 		let mut render_delta: f64 = 0.0;

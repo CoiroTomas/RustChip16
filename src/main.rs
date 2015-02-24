@@ -1,8 +1,10 @@
 extern crate piston;
 extern crate graphics;
-extern crate opengl_graphics;
+extern crate gfx;
+extern crate gfx_graphics;
 extern crate sdl2_window;
 extern crate sdl2;
+use std::mem::transmute;
 use cpu::Cpu;
 use std::env;
 mod cpu;
