@@ -11,6 +11,7 @@ name = "rust-chip16"
 [dependencies]
 
 num = "*"
+rand = "*"
 
 [dependencies.gl]
 

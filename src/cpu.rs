@@ -1,14 +1,12 @@
 use std::old_io::{File, Open, Read};
 use std::cell::RefCell;
-use std::mem::transmute;
+use std::iter::Zip;
 use opcode::{to_opcode};
 use opcode;
-use piston;
 use piston::event::{
 	events,
 	RenderArgs,
 	RenderEvent,
-	UpdateArgs,
 	UpdateEvent,
 };
 use sdl2_window::Sdl2Window as Window;
@@ -165,19 +163,22 @@ impl Graphics {
 
 		let mut hit: u64 = 0;
 		let mut j: u16 = 0;
-		let mut i: u16 = 0;
+		let mut i: u16;
 		for y in y_start..y_end {
 			i = 0;
 			for x in x_start..x_end {
-				if (i + x as u16) < 0
-					|| (i + x as u16) > 319
-					|| (j + y as u16) < 0
-					|| (j + y as u16) > 239
+				if (i as i16 + x) < 0
+					|| (i as i16 + x) > 319
+					|| (j as i16 + y) < 0
+					|| (j as i16 + y) > 239
 				{
 					continue;
 				}
 
-				let pixels = mem.read_byte((y as u16 * self.state.spritew as u16 + x as u16) as usize);
+				let pixels = mem.read_byte((y as u16 * self.state.spritew as u16
+					+ x as u16
+					+ spr_address as u16)
+				as usize);
 				let (hh_pixel, ll_pixel) = separate_byte(pixels);
 				let odd_pixel: u8;
 				let even_pixel: u8;
@@ -189,12 +190,12 @@ impl Graphics {
 					odd_pixel = hh_pixel as u8;
 				}
 
-				if (even_pixel != 0) {
+				if even_pixel != 0 {
 					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i) as usize] as u64;
 					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i*2) as usize] = even_pixel;
 				}
 
-				if (odd_pixel != 0) {
+				if odd_pixel != 0 {
 					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i + 1) as usize] as u64;
 					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i*2 + 1) as usize] = odd_pixel;
 				}
@@ -210,7 +211,6 @@ impl Graphics {
 		let context = &graphics::Context::abs(args.width as f64, args.height as f64);
 		let mut colours: Vec<[f32;4]> = Vec::with_capacity(16);
 		for p in self.palette.iter() {
-			let mut v: Vec<f32> = vec![];
 			let v: [f32; 4] = [
 				(((p &0xFF0000)>>4) as f32) / 255.0 as f32,
 				(((p & 0xFF00) >> 2) as f32) / 255.0,
@@ -220,12 +220,11 @@ impl Graphics {
 		}
 
 		let screen = self.screen.iter();
-		let mut i: u32 = 0;
 		self.gl.draw([0, 0, args.width as i32, args.height as i32], |_, gl| {
 			graphics::clear(colours[0], gl);
-			for pixel in screen {
-				let y: f64 = ((i / 320) as f64 / args.height as f64);
-				let x: f64 = ((i & 320) as f64 / args.width as f64);
+			for (pixel, i) in screen.zip(0..70000u32) {
+				let y: f64 = (i / 320) as f64 / args.height as f64;
+				let x: f64 = (i % 320) as f64 / args.width as f64;
 				graphics::rectangle(
 					colours[*pixel as usize],
 					graphics::rectangle::square(x, y, 1.0/255.0),
@@ -426,21 +425,21 @@ impl Cpu {
 			if let Some(u) = e.update_args() {
 				let mut dt = u.dt;
 				render_delta += dt;
-				while(dt > 0.001) {
+				while dt > 0.001 {
 					dt -= 0.001;
 					update_delta += 0.001;
-					self.vblank = update_delta > (1.0 / 60.0);
+					self.vblank = update_delta > 1.0 / 60.0;
 					self.step();
 					if self.vblank {
 						self.vblank = false;
-						update_delta -= (1.0 / 60.0);
+						update_delta -= 1.0 / 60.0;
 					};
 				}
 			}
 
 			if let Some(r) = e.render_args() {
-				if render_delta > (1.0 / 60.0) {
-					render_delta -= (1.0 / 60.0);
+				if render_delta > 1.0 / 60.0 {
+					render_delta -= 1.0 / 60.0;
 					self.graphics.draw_screen(&mut window.borrow_mut(), &r);
 				}
 			}
