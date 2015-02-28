@@ -13,6 +13,7 @@ pub fn to_opcode(v: i8) -> Opcode {
 	unsafe { mem::transmute(v) }
 }
 
+#[allow(dead_code)]
 pub enum Opcode {
 	Nop = 0,
 	Cls,
