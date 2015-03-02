@@ -222,7 +222,7 @@ impl Graphics {
 		let screen = self.screen.iter();
 		self.gl.draw([0, 0, args.width as i32, args.height as i32], |_, gl| {
 			graphics::clear(colours[0], gl);
-			for (pixel, i) in screen.zip(0..70000u32) {
+			for (pixel, i) in screen.zip(0..76800u32) {
 				let y: f64 = (i / 320) as f64;
 				let x: f64 = (i % 320) as f64;
 				graphics::rectangle(
