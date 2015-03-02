@@ -140,32 +140,33 @@ impl Graphics {
 			return false;
 		}
 
-		let x_start: i16;
-		let  x_end: i16;
+		let ix_start: i16;
+		let ix_end: i16;
 		if self.state.hflip {
-			x_start = (self.state.spritew  - 1) as i16;
-			x_end = -2;
+			ix_start = (self.state.spritew  - 1) as i16;
+			ix_end = -2;
 		} else {
-			x_start = 0;
-			x_end = self.state.spritew as i16;
+			ix_start = 0;
+			ix_end = self.state.spritew as i16;
 		}
 
-		let y_start: i16;
-		let y_end: i16;
+		let iy_start: i16;
+		let iy_end: i16;
 		if self.state.vflip {
-			y_start = (self.state.spriteh - 1) as i16;
-			y_end = -1;
+			iy_start = (self.state.spriteh - 1) as i16;
+			iy_end = -1;
 		} else {
-			y_start = 0;
-			y_end = self.state.spriteh as i16;
+			iy_start = 0;
+			iy_end = self.state.spriteh as i16;
 		}
 
-		let mut hit: u64 = 0;
+		let mut hit: u8 = 0;
 		let mut j: u16 = 0;
 		let mut i: u16;
-		for y in y_start..y_end {
+		for y in iy_start..iy_end {
 			i = 0;
-			for x in x_start..x_end {
+			for x in ix_start..ix_end {
+				let x = x * 2;
 				if (i as i16 + x) < 0
 					|| (i as i16 + x) > 319
 					|| (j as i16 + y) < 0
@@ -175,7 +176,7 @@ impl Graphics {
 				}
 
 				let pixels = mem.read_byte((y as u16 * self.state.spritew as u16
-					+ x as u16
+					+ (x as u16 / 2)
 					+ spr_address as u16)
 				as usize);
 				let (hh_pixel, ll_pixel) = separate_byte(pixels);
@@ -190,13 +191,13 @@ impl Graphics {
 				}
 
 				if even_pixel != 0 {
-					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i) as usize] as u64;
-					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i*2) as usize] = even_pixel;
+					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i) as usize];
+					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i) as usize] = even_pixel;
 				}
 
 				if odd_pixel != 0 {
-					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i + 1) as usize] as u64;
-					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i*2 + 1) as usize] = odd_pixel;
+					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i + 1) as usize];
+					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i + 1) as usize] = odd_pixel;
 				}
 				i += 2;
 			}
@@ -211,8 +212,8 @@ impl Graphics {
 		let mut colours: Vec<[f32;4]> = Vec::with_capacity(16);
 		for p in self.palette.iter() {
 			let v: [f32; 4] = [
-				(((p &0xFF0000)>>4) as f32) / 255.0 as f32,
-				(((p & 0xFF00) >> 2) as f32) / 255.0,
+				(((p & 0xFF0000)>>8) as f32) / 255.0,
+				(((p & 0xFF00) >> 4) as f32) / 255.0,
 				((p & 0xFF) as f32) / 255.0,
 				1.0,];
 			colours.push(v);
@@ -222,11 +223,11 @@ impl Graphics {
 		self.gl.draw([0, 0, args.width as i32, args.height as i32], |_, gl| {
 			graphics::clear(colours[0], gl);
 			for (pixel, i) in screen.zip(0..70000u32) {
-				let y: f64 = (i / 320) as f64 / args.height as f64;
-				let x: f64 = (i % 320) as f64 / args.width as f64;
+				let y: f64 = (i / 320) as f64;
+				let x: f64 = (i % 320) as f64;
 				graphics::rectangle(
 					colours[*pixel as usize],
-					graphics::rectangle::square(x, y, 1.0/255.0),
+					graphics::rectangle::square(x, y, 1.0),
 					context,
 					gl);
 			}
