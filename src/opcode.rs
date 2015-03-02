@@ -111,7 +111,7 @@ impl Opcode {
 				let (ry, rx) = separate_byte(byte1);
 				let ry_val = cpu.get_rx(ry);
 				let rx_val = cpu.get_rx(rx);
-				let hhll = join_bytes(byte3, byte2);
+				let hhll = join_bytes(byte2, byte3);
 				cpu.drw(rx_val, ry_val, hhll);
 			}
 			Drw2 => {
@@ -151,8 +151,8 @@ impl Opcode {
 			Mov => mov(cpu, separate_byte(byte1)),
 			Stm => stm(cpu, byte1, join_bytes(byte2, byte3)),
 			Stm2 => {
-				let (x, y) = separate_byte(byte1);
-				ldmrx(cpu, (y, x));
+				let (y, x) = separate_byte(byte1);
+				stm2(cpu, y, x);
 			},
 			Addi => addi(cpu, byte1, join_bytes(byte2, byte3)),
 			Add => {
@@ -310,13 +310,13 @@ fn ldisp(cpu: &mut Cpu, value: i16) -> () {
 }
 
 fn ldm(cpu: &mut Cpu, rx: i8, dir: i16) -> () {
-	let value = cpu.memory.read_word(dir as usize);
+	let value = cpu.memory.read_word((dir as u16) as usize);
 	cpu.set_rx(rx, value);
 }
 
 fn ldmrx(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
-	let reg = cpu.get_rx(y) as usize;
-	let value = cpu.memory.read_word(reg);
+	let dir = (cpu.get_rx(y) as u16) as usize;
+	let value = cpu.memory.read_word(dir);
 	cpu.set_rx(x, value);
 }
 
@@ -327,7 +327,13 @@ fn mov(cpu: &mut Cpu, (y, x): (i8, i8)) -> () {
 
 fn stm(cpu: &mut Cpu, rx: i8, dir: i16) -> () {
 	let value = cpu.get_rx(rx);
-	cpu.memory.write_word(dir as usize, value);
+	cpu.memory.write_word((dir as u16) as usize, value);
+}
+
+fn stm2(cpu: &mut Cpu, address: i8, x: i8) -> () {
+	let address = cpu.get_rx(address) as u16;
+	let value = cpu.get_rx(x);
+	cpu.memory.write_word(address as usize, value);
 }
 
 fn sign(number: i16) -> i8 {
@@ -363,9 +369,9 @@ fn add(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 }
 
 fn change_flags_sub(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry((original as u32 - value as u32) > (1 << 15));
+	cpu.put_carry(((original as u16) as u32 - (value as u16) as u32) > (1 << 15));
 	cpu.put_zero(result == 0);
-	cpu.put_overflow(sign(original) == sign(value) && sign(result) != sign(original));
+	cpu.put_overflow((result < original) != (value > 0));
 	cpu.put_negative(result < 0);
 }
 
@@ -389,7 +395,7 @@ fn cmpi(cpu: &mut Cpu, rx:i8, value: i16) -> i16 {
 fn cmp(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> i16 {
 	let rx_val = cpu.get_rx(rx);
 	let ry_val = cpu.get_rx(ry);
-	let result = rx_val + ry_val;
+	let result = rx_val - ry_val;
 	change_flags_sub(cpu, rx_val, ry_val, result);
 	result
 }
@@ -455,7 +461,7 @@ fn xor(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 }
 
 fn change_flags_mul(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry((original as u32 * value as u32) > (1 << 15));
+	cpu.put_carry(((original as u16) as u32 * (value as u16) as u32) > (1 << 15));
 	cpu.put_zero(result == 0);
 	cpu.put_negative(result < 0);
 }

@@ -298,12 +298,12 @@ impl Cpu {
 	
 	pub fn pop_stack(&mut self) -> i16 {
 		self.sp = self.sp - 2;
-		let word = self.memory.read_word(self.sp as usize);
+		let word = self.memory.read_word((self.sp as u16) as usize);
 		word
 	}
 	
 	pub fn push_stack(&mut self, word: i16) -> () {
-		self.memory.write_word(self.sp as usize, word);
+		self.memory.write_word((self.sp as u16) as usize, word);
 		self.sp = self.sp + 2;
 	}
 	
@@ -425,9 +425,9 @@ impl Cpu {
 			if let Some(u) = e.update_args() {
 				let mut dt = u.dt;
 				render_delta += dt;
-				while dt > 0.001 {
-					dt -= 0.001;
-					update_delta += 0.001;
+				while dt > 0.000001 {
+					dt -= 0.000001;
+					update_delta += 0.000001;
 					self.vblank = update_delta > 1.0 / 60.0;
 					self.step();
 					if self.vblank {
