@@ -46,7 +46,7 @@ struct Graphics {
 	palette: [u32; 16], //capacity == 16
 	screen: [u8 ; 76800], //capacity == 320x240
 	//size: i32,  //this is for later, when i implement x2 or x4 windows
-	gl: Gl,
+	gl: Option<Gl>,
 }
 	
 struct StateRegister {
@@ -115,7 +115,18 @@ impl Graphics {
 				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
 			screen: [0; 76800],
 			//size: 1,
-			gl: Gl::new(OpenGL::_3_2),
+			gl: Some(Gl::new(OpenGL::_3_2)),
+		}
+	}
+	
+	pub fn new_test() -> Graphics {
+		Graphics {
+			state: StateRegister::new(),
+			palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
+				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
+			screen: [0; 76800],
+			//size: 1,
+			gl: None,
 		}
 	}
 	
@@ -216,25 +227,29 @@ impl Graphics {
 				1.0,];
 			colours.push(v);
 		}
-
+		
 		let screen = self.screen.iter();
 		let bg = self.state.bg;
-		self.gl.draw([0, 0, args.width as i32, args.height as i32], |_, gl| {
-			graphics::clear(colours[0], gl);
-			for (pixel, i) in screen.zip(0..76800u32) {
-				let y: f64 = (i / 320) as f64;
-				let x: f64 = (i % 320) as f64;
-				graphics::rectangle(
-					if *pixel == 0 { //If it is background, use the bg pointer
-						colours[bg as usize]
-					} else {
-						colours[*pixel as usize]
-					},
-					graphics::rectangle::square(x, y, 1.0),
-					context,
-					gl);
-			}
-		})
+		match self.gl {
+			Some(ref mut glc) =>
+				glc.draw([0, 0, args.width as i32, args.height as i32], |_, gl| {
+					graphics::clear(colours[0], gl);
+					for (pixel, i) in screen.zip(0..76800u32) {
+						let y: f64 = (i / 320) as f64;
+						let x: f64 = (i % 320) as f64;
+						graphics::rectangle(
+							if *pixel == 0 { //If it is background, use the bg pointer
+								colours[bg as usize]
+							} else {
+								colours[*pixel as usize]
+							},
+							graphics::rectangle::square(x, y, 1.0),
+							context,
+							gl)
+					}
+				}),
+			_ => panic!(""),
+		}
 	}
 }
 
@@ -260,7 +275,7 @@ impl Cpu {
 	
 	pub fn new_test() -> Cpu {// "Virgin" cpu for testing
 		Cpu {pc: 0, sp: 0, rx: [0; 16], flags: 0,
-			vblank: false, graphics: Graphics::new(),
+			vblank: false, graphics: Graphics::new_test(),
 			memory: Memory::new(),
 		}
 	}

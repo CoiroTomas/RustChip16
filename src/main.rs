@@ -33,3 +33,17 @@ fn main() {
 	let mut cpu = Cpu::new(Path::new(path));
 	cpu.start_program(window);
 }
+
+mod tests {
+	use cpu::Cpu;
+	use opcode::Opcode;
+
+	#[test]
+	fn new_cpu() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Nop, 0, 0, 0);
+		cpu.start_test(1);
+		assert_eq!(cpu.pc, 4);
+	}
+
+}
