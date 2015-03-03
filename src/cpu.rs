@@ -408,8 +408,8 @@ impl Cpu {
 	}
 	
 	pub fn step(&mut self) -> () {
-		if self.pc >= 0xFDF0 {
-			panic!("The program accessed the stack as instructions");
+		if self.pc >= 0xFFFF {
+			panic!("The instruction pointer has run out of memory to read");
 		}
 		let op_n = self.memory.read_byte(self.pc as usize);
 		let op: opcode::Opcode = to_opcode(op_n);
