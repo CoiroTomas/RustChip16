@@ -347,7 +347,7 @@ fn sign(number: i16) -> i8 {
 }
 
 fn change_flags_add(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry((original as u32 + value as u32) > (1 << 15));
+	cpu.put_carry(result as i32 != (original as i32 + value as i32));
 	cpu.put_zero(result == 0);
 	cpu.put_overflow(sign(original) == sign(value) && sign(result) != sign(original));
 	cpu.put_negative(result < 0);
@@ -369,9 +369,9 @@ fn add(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 }
 
 fn change_flags_sub(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry(((original as u16) as u32 - (value as u16) as u32) > (1 << 15));
+	cpu.put_carry(result as i32 != (original as i32 - value as i32));
 	cpu.put_zero(result == 0);
-	cpu.put_overflow((result < original) != (value > 0));
+	cpu.put_overflow(sign(original) == sign(value) && sign(result) != sign(original));
 	cpu.put_negative(result < 0);
 }
 
@@ -461,12 +461,12 @@ fn xor(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 }
 
 fn change_flags_mul(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry(((original as u16) as u32 * (value as u16) as u32) > (1 << 15));
+	cpu.put_carry(result as i32 != (original as i32 * value as i32));
 	cpu.put_zero(result == 0);
 	cpu.put_negative(result < 0);
 }
 
-fn muli(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+fn muli(cpu: &mut Cpu, rx: i8, value: i16) -> () {
 	let rx_val = cpu.get_rx(rx);
 	let result = rx_val * value;
 	change_flags_mul(cpu, rx_val, value, result);
