@@ -103,7 +103,7 @@ impl Opcode {
 	pub fn execute(&self, cpu: &mut Cpu, byte1: i8, byte2: i8, byte3: i8) {
 		match *self {
 			Nop => nop(),
-			Cls => cpu.clear_bg(),
+			Cls => cpu.clear_fg_bg(),
 			Vblnk => vblnk(cpu),
 			Bgc => cpu.set_bg(byte2 as u8),
 			Spr => cpu.set_spr_wh(byte2 as u8, byte3 as u8),

@@ -42,19 +42,19 @@ enum Flag {
 }
 
 struct Graphics {
-	state: StateRegister,
-	palette: [u32; 16], //capacity == 16
-	screen: [u8 ; 76800], //capacity == 320x240
+	pub state: StateRegister,
+	pub palette: [u32; 16], //capacity == 16
+	pub screen: [u8 ; 76800], //capacity == 320x240
 	//size: i32,  //this is for later, when i implement x2 or x4 windows
 	gl: Option<Gl>,
 }
 	
 struct StateRegister {
 	bg: u8,
-	spritew: u8,
-	spriteh: u8,
-	hflip: bool,
-	vflip: bool,
+	pub spritew: u8,
+	pub spriteh: u8,
+	pub hflip: bool,
+	pub vflip: bool,
 }
 
 struct Memory {
@@ -67,7 +67,7 @@ pub struct Cpu {
 	rx: [i16; 16], //capacity == 16
 	flags: i8,
 	pub vblank: bool,
-	graphics: Graphics,
+	pub graphics: Graphics,
 	pub memory: Memory,
 }
 
@@ -132,6 +132,9 @@ impl Graphics {
 	
 	fn clear(self: &mut Graphics) {
 	    self.state.clear();
+		for pixel in self.screen.iter_mut() {
+			*pixel = 0;
+		}
 	}
 	
 	pub fn set_bg(&mut self, byte: u8) -> () {
@@ -315,7 +318,7 @@ impl Cpu {
 		self.put_carry(carry);
 	}
 	
-	pub fn clear_bg(&mut self) {
+	pub fn clear_fg_bg(&mut self) {
 		self.graphics.clear()
 	}
 	
@@ -396,7 +399,7 @@ impl Cpu {
 		if new_state {
 			self.flags = Flag::Carry as i8 | self.flags
 		} else {
-			self.flags = Flag::Carry as i8 ^ self.flags
+			self.flags = !(Flag::Carry as i8) & self.flags
 		}
 	}
 	
@@ -404,7 +407,7 @@ impl Cpu {
 		if new_state {
 			self.flags = Flag::Zero as i8 | self.flags
 		} else {
-			self.flags = Flag::Zero as i8 ^ self.flags
+			self.flags = !(Flag::Zero as i8) & self.flags
 		}
 	}
 	
@@ -412,7 +415,7 @@ impl Cpu {
 		if new_state {
 			self.flags = Flag::Overflow as i8 | self.flags
 		} else {
-			self.flags = Flag::Overflow as i8 ^ self.flags
+			self.flags = !(Flag::Overflow as i8) & self.flags
 		}
 	}
 	
@@ -420,7 +423,7 @@ impl Cpu {
 		if new_state {
 			self.flags = Flag::Negative as i8 | self.flags
 		} else {
-			self.flags = Flag::Negative as i8 ^ self.flags
+			self.flags = !(Flag::Negative as i8) & self.flags
 		}
 	}
 	
