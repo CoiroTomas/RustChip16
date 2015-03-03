@@ -258,6 +258,29 @@ impl Cpu {
 		cpu
 	}
 	
+	pub fn new_test() -> Cpu {// "Virgin" cpu for testing
+		Cpu {pc: 0, sp: 0, rx: [0; 16], flags: 0,
+			vblank: false, graphics: Graphics::new(),
+			memory: Memory::new(),
+		}
+	}
+	
+	pub fn add_opcode(&mut self, op: opcode::Opcode, byte1: i8, byte2: i8, byte3: i8) -> () {
+		let pc = self.pc as usize; //Ability to add instructions for testing
+		self.memory.write_byte(pc, op as i8);
+		self.memory.write_byte(pc + 1, byte1);
+		self.memory.write_byte(pc + 2, byte2);
+		self.memory.write_byte(pc + 3, byte3);
+		self.pc = pc as u16 + 4;
+	}
+	
+	pub fn start_test(&mut self, instructions_to_execute: i8) -> () {
+		self.pc = 0;//Ability to specify how many opcodes you want executed, for testing
+		for _ in 0..instructions_to_execute {
+			self.step()
+		}
+	}
+	
 	pub fn load_pal(&mut self, dir: i16) -> () {
 		for i in 0..15 {
 			let dir = dir as usize;
@@ -411,11 +434,12 @@ impl Cpu {
 		if self.pc >= 0xFFFF {
 			panic!("The instruction pointer has run out of memory to read");
 		}
-		let op_n = self.memory.read_byte(self.pc as usize);
-		let op: opcode::Opcode = to_opcode(op_n);
-		let byte1 = self.memory.read_byte((self.pc + 1) as usize);
-		let byte2 = self.memory.read_byte((self.pc + 2) as usize);
-		let byte3 = self.memory.read_byte((self.pc + 3) as usize);
+		let pc = self.pc as usize;
+		let op = self.memory.read_byte(pc);
+		let op: opcode::Opcode = to_opcode(op);
+		let byte1 = self.memory.read_byte(pc + 1);
+		let byte2 = self.memory.read_byte(pc + 2);
+		let byte3 = self.memory.read_byte(pc + 3);
 		self.pc = self.pc + 4;
 		op.execute(self, byte1, byte2, byte3);
 	}
