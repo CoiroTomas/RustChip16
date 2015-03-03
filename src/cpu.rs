@@ -51,7 +51,6 @@ struct Graphics {
 	
 struct StateRegister {
 	bg: u8,
-	fg: u8,
 	spritew: u8,
 	spriteh: u8,
 	hflip: bool,
@@ -100,11 +99,10 @@ impl Memory {
 
 impl StateRegister {
 	pub fn new() -> StateRegister{
-	    StateRegister { bg: 0, fg: 0, spritew: 0, spriteh: 0, hflip: false, vflip: false,}
+	    StateRegister { bg: 0, spritew: 0, spriteh: 0, hflip: false, vflip: false,}
 	}
 	
 	fn clear(self: &mut StateRegister) {
-		self.fg = 0;
 		self.bg = 0;
 	}
 }
@@ -227,10 +225,10 @@ impl Graphics {
 				let y: f64 = (i / 320) as f64;
 				let x: f64 = (i % 320) as f64;
 				graphics::rectangle(
-					if *pixel != 0 {
-						colours[*pixel as usize]
-					} else {
+					if *pixel == 0 { //If it is background, use the bg pointer
 						colours[bg as usize]
+					} else {
+						colours[*pixel as usize]
 					},
 					graphics::rectangle::square(x, y, 1.0),
 					context,
@@ -251,12 +249,11 @@ impl Cpu {
 			vblank: false, graphics: Graphics::new(),
 			memory: Memory::new(),
 		};
-		if file_path.extension_str() == Some("bin") {
-			load_bin(&mut file, &mut cpu)
-		} else if file_path.extension_str() == Some("c16") {
-			load_c16(&mut file, &mut cpu)
-		} else {
-			panic!("The file is not a valid extension")
+		let ext = file_path.extension_str();
+		match ext {
+			Some("bin") => load_bin(&mut file, &mut cpu),
+			Some("c16") => load_c16(&mut file, &mut cpu),
+			_ => panic!("The file is not a valid extension"),
 		}
 		cpu
 	}
@@ -280,7 +277,7 @@ impl Cpu {
 		self.put_carry(carry);
 	}
 	
-	pub fn clear_fg_bg(&mut self) {
+	pub fn clear_bg(&mut self) {
 		self.graphics.clear()
 	}
 	
