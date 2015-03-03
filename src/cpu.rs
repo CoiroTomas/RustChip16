@@ -144,7 +144,7 @@ impl Graphics {
 		let ix_end: i16;
 		if self.state.hflip {
 			ix_start = (self.state.spritew  - 1) as i16;
-			ix_end = -2;
+			ix_end = -1;
 		} else {
 			ix_start = 0;
 			ix_end = self.state.spritew as i16;
@@ -212,21 +212,26 @@ impl Graphics {
 		let mut colours: Vec<[f32;4]> = Vec::with_capacity(16);
 		for p in self.palette.iter() {
 			let v: [f32; 4] = [
-				(((p & 0xFF0000)>>8) as f32) / 255.0,
-				(((p & 0xFF00) >> 4) as f32) / 255.0,
-				((p & 0xFF) as f32) / 255.0,
+				((p & 0xFF0000) >> 16) as f32 / 255.0,
+				((p & 0xFF00) >> 8) as f32 / 255.0,
+				(p & 0xFF) as f32 / 255.0,
 				1.0,];
 			colours.push(v);
 		}
 
 		let screen = self.screen.iter();
+		let bg = self.state.bg;
 		self.gl.draw([0, 0, args.width as i32, args.height as i32], |_, gl| {
 			graphics::clear(colours[0], gl);
 			for (pixel, i) in screen.zip(0..76800u32) {
 				let y: f64 = (i / 320) as f64;
 				let x: f64 = (i % 320) as f64;
 				graphics::rectangle(
-					colours[*pixel as usize],
+					if *pixel != 0 {
+						colours[*pixel as usize]
+					} else {
+						colours[bg as usize]
+					},
 					graphics::rectangle::square(x, y, 1.0),
 					context,
 					gl);
