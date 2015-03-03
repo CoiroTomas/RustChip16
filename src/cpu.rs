@@ -119,6 +119,7 @@ impl Graphics {
 		}
 	}
 	
+	#[allow(dead_code)]
 	pub fn new_test() -> Graphics {
 		Graphics {
 			state: StateRegister::new(),
@@ -276,6 +277,7 @@ impl Cpu {
 		cpu
 	}
 	
+	#[allow(dead_code)]
 	pub fn new_test() -> Cpu {// "Virgin" cpu for testing
 		Cpu {pc: 0, sp: 0, rx: [0; 16], flags: 0,
 			vblank: false, graphics: Graphics::new_test(),
@@ -283,6 +285,7 @@ impl Cpu {
 		}
 	}
 	
+	#[allow(dead_code)]
 	pub fn add_opcode(&mut self, op: opcode::Opcode, byte1: i8, byte2: i8, byte3: i8) -> () {
 		let pc = self.pc as usize; //Ability to add instructions for testing
 		self.memory.write_byte(pc, op as i8);
@@ -292,6 +295,7 @@ impl Cpu {
 		self.pc = pc as u16 + 4;
 	}
 	
+	#[allow(dead_code)]
 	pub fn start_test(&mut self, instructions_to_execute: i8) -> () {
 		self.pc = 0;//Ability to specify how many opcodes you want executed, for testing
 		for _ in 0..instructions_to_execute {

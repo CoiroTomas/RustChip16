@@ -11,7 +11,7 @@ mod cpu;
 mod opcode;
 mod loading;
 
-fn main() { 
+fn main() {
 	let mut args = env::args();
 	let (min, _) = args.size_hint();
 	if min < 2 {
@@ -35,6 +35,7 @@ fn main() {
 }
 
 mod tests {
+	#![allow(dead_code)]
 	use cpu::Cpu;
 	use opcode::Opcode;
 	
