@@ -87,7 +87,7 @@ impl Memory {
 	pub fn read_word(&mut self, dir: usize) -> i16 {
 		let ll = self.memory[dir];
 		let hh = self.memory[dir + 1];
-		join_bytes(hh, ll)
+		join_bytes(ll, hh)
 	}
 	
 	pub fn write_word(&mut self, dir: usize, value: i16) -> () {
