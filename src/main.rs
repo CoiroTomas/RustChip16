@@ -269,4 +269,44 @@ mod tests {
 		
 		assert_eq!(cpu.memory.read_word(0x20), 0x1050);
 	}
+	
+	#[test]
+	fn addi() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Addi, 5, 0x05, 0x20);
+		cpu.add_opcode(Opcode::Addi, 5, 0xFB, 0xDF); //This is negative 0x2005
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5), 0x2005);
+		cpu.step();
+		assert_eq!(cpu.get_rx(5), 0);
+		assert!(cpu.has_zero());
+	}
+	
+	#[test]
+	fn add() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Add, 0x65, 0, 0);
+		cpu.set_rx(5, 300);
+		cpu.set_rx(6, 300);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5), 600);
+		assert!(!cpu.has_zero() && !cpu.has_negative() && !cpu.has_overflow() && !cpu.has_carry());
+	}
+	
+	#[test]
+	fn add_flags() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.set_rx(5, -30000);
+		cpu.add_opcode(Opcode::Addi, 5, 0xD0, 0x8A);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5), 5536);
+		assert!(cpu.has_carry());
+		assert!(cpu.has_overflow());
+		
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Addi, 5, 0xD0, 0x8A);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5), -30000);
+		assert!(cpu.has_negative());
+	}
 }

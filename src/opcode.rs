@@ -357,7 +357,7 @@ fn addi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
 	let rx_val = cpu.get_rx(rx);
 	let result = rx_val + value;
 	change_flags_add(cpu, rx_val, value, result);
-	cpu.set_rx(rx, value);
+	cpu.set_rx(rx, result);
 }
 
 fn add(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
