@@ -294,6 +294,17 @@ mod tests {
 	}
 	
 	#[test]
+	fn add2() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Add2, 0x65, 7, 0);
+		cpu.set_rx(5, 300);
+		cpu.set_rx(6, 300);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(7), 600);
+		assert!(!cpu.has_zero() && !cpu.has_negative() && !cpu.has_overflow() && !cpu.has_carry());
+	}
+	
+	#[test]
 	fn add_flags() -> () {
 		let mut cpu = Cpu::new_test();
 		cpu.set_rx(5, -30000);
