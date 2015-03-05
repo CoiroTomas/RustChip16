@@ -306,7 +306,7 @@ fn ldi(cpu: &mut Cpu, rx: i8, value: i16) -> () {
 }
 
 fn ldisp(cpu: &mut Cpu, value: i16) -> () {
-	cpu.sp = value;
+	cpu.sp = value as u16;
 }
 
 fn ldm(cpu: &mut Cpu, rx: i8, dir: i16) -> () {

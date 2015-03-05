@@ -63,7 +63,7 @@ struct Memory {
 	
 pub struct Cpu {
 	pub pc: u16,
-	pub sp: i16,
+	pub sp: u16,
 	rx: [i16; 16], //capacity == 16
 	flags: i8,
 	pub vblank: bool,
@@ -264,7 +264,7 @@ impl Cpu {
    		    Err(e) => panic!("{} {}", e.desc, file_path.display()),
 		};
 		
-		let mut cpu = Cpu {pc: 0, sp: 0, rx: [0; 16], flags: 0,
+		let mut cpu = Cpu {pc: 0, sp: 0xFDF0, rx: [0; 16], flags: 0,
 			vblank: false, graphics: Graphics::new(),
 			memory: Memory::new(),
 		};
@@ -279,7 +279,7 @@ impl Cpu {
 	
 	#[allow(dead_code)]
 	pub fn new_test() -> Cpu {// "Virgin" cpu for testing
-		Cpu {pc: 0, sp: 0, rx: [0; 16], flags: 0,
+		Cpu {pc: 0, sp: 0xFDF0, rx: [0; 16], flags: 0,
 			vblank: false, graphics: Graphics::new_test(),
 			memory: Memory::new(),
 		}
@@ -304,7 +304,7 @@ impl Cpu {
 	}
 	
 	pub fn load_pal(&mut self, dir: i16) -> () {
-		for i in 0..15 {
+		for i in 0..16 {
 			let dir = dir as usize;
 			let high: u32 = (self.memory.read_byte(dir + (i * 3)) as i32 as u32) << 16;
 			let middle: u32 = (self.memory.read_byte(dir + (i * 3) + 1) as i32 as u32) << 8;
@@ -345,12 +345,12 @@ impl Cpu {
 	
 	pub fn pop_stack(&mut self) -> i16 {
 		self.sp = self.sp - 2;
-		let word = self.memory.read_word((self.sp as u16) as usize);
+		let word = self.memory.read_word(self.sp as usize);
 		word
 	}
 	
 	pub fn push_stack(&mut self, word: i16) -> () {
-		self.memory.write_word((self.sp as u16) as usize, word);
+		self.memory.write_word(self.sp as usize, word);
 		self.sp = self.sp + 2;
 	}
 	
@@ -362,9 +362,11 @@ impl Cpu {
 	}
 	
 	pub fn popall(&mut self) -> () {
-		for i in range(15i8, 1i8) {
+		let mut i = 15i8;
+		while i >= 0 {
 			let val = self.pop_stack();
 			self.set_rx(i, val);
+			i -= 1;
 		}
 	}
 	

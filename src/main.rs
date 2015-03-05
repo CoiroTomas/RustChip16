@@ -565,4 +565,160 @@ mod tests {
 		assert!(cpu2.has_negative());
 		assert!(!cpu2.has_zero());
 	}
+	
+	#[test]
+	fn shl() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Shl, 5, 3, 0);
+		cpu.set_rx(5, 1);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5), 1<<3);
+		assert!(!cpu.has_zero());
+		assert!(!cpu.has_negative());
+	}
+	
+	#[test]
+	fn shr() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Shr, 5, 3, 0);
+		cpu.set_rx(5, 0xF000);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5), (0xF000u16 >> 3) as i16);
+		assert!(!cpu.has_zero());
+		assert!(!cpu.has_negative());
+	}
+	
+	#[test]
+	fn sar() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Sar, 5, 4, 0);
+		cpu.set_rx(5, 0xF000);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5), 0xFF00);
+		assert!(!cpu.has_zero());
+		assert!(cpu.has_negative());
+	}
+	
+	#[test]
+	fn shl2() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Shl2, 0x65, 0, 0);
+		cpu.set_rx(5, 1);
+		cpu.set_rx(6, 3);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5), 1<<3);
+		assert!(!cpu.has_zero());
+		assert!(!cpu.has_negative());
+	}
+	
+	#[test]
+	fn shr2() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Shr2, 0x65, 0, 0);
+		cpu.set_rx(5, 0xF000);
+		cpu.set_rx(6, 4);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5),0x0F00);
+		assert!(!cpu.has_zero());
+		assert!(!cpu.has_negative());
+	}
+	
+	#[test]
+	fn sar2() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Sar2, 0x65, 0, 0);
+		cpu.set_rx(5, 0xF000);
+		cpu.set_rx(6, 4);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5),0xFF00);
+		assert!(!cpu.has_zero());
+		assert!(cpu.has_negative());
+	}
+	
+	#[test]
+	fn push_pop_stack() -> () {
+		let mut cpu = Cpu::new_test();
+		let sp = cpu.sp;
+		assert_eq!(sp, 0xFDF0);
+		cpu.add_opcode(Opcode::Push, 0x4, 0, 0);
+		cpu.add_opcode(Opcode::Pop, 0x5, 0, 0);
+		cpu.set_rx(4, 1000);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.sp, 0xFDF2);
+		assert_eq!(cpu.memory.read_word(sp as u16 as usize), 1000);
+		
+		cpu.step();
+		
+		assert_eq!(cpu.get_rx(5), 1000);
+	}
+	
+	#[test]
+	fn pushall_popall() -> () {
+		let mut cpu = Cpu::new_test();
+		let sp = cpu.sp;
+		assert_eq!(sp, 0xFDF0);
+		cpu.add_opcode(Opcode::Pushall, 0, 0, 0);
+		cpu.add_opcode(Opcode::Popall, 0, 0, 0);
+		
+		cpu.set_rx(0, 1);
+		cpu.set_rx(1, 2);
+		cpu.set_rx(2, 3);
+		cpu.set_rx(3, 4);
+		cpu.set_rx(4, 5);
+		cpu.set_rx(5, 6);
+		cpu.set_rx(6, 7);
+		cpu.set_rx(7, 8);
+		cpu.set_rx(8, 9);
+		cpu.set_rx(9, 10);
+		cpu.set_rx(10, 11);
+		cpu.set_rx(11, 12);
+		cpu.set_rx(12, 13);
+		cpu.set_rx(13, 14);
+		cpu.set_rx(14, 15);
+		cpu.set_rx(15, 16);
+		
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.sp, 0xFDF0 + 32);
+		assert_eq!(cpu.memory.read_word(sp as usize), 1);
+		assert_eq!(cpu.memory.read_word(0xFDF0 + 30), 16);
+		
+		cpu.set_rx(0, 10);
+		cpu.set_rx(1, 20);
+		cpu.set_rx(2, 30);
+		cpu.set_rx(3, 40);
+		cpu.set_rx(4, 50);
+		cpu.set_rx(5, 60);
+		cpu.set_rx(6, 70);
+		cpu.set_rx(7, 80);
+		cpu.set_rx(8, 90);
+		cpu.set_rx(9, 100);
+		cpu.set_rx(10, 110);
+		cpu.set_rx(11, 120);
+		cpu.set_rx(12, 130);
+		cpu.set_rx(13, 140);
+		cpu.set_rx(14, 150);
+		cpu.set_rx(15, 160);
+		
+		cpu.step();
+		assert_eq!(cpu.sp, 0xFDF0);
+		
+		assert_eq!(cpu.get_rx(0), 1);
+		assert_eq!(cpu.get_rx(1), 2);
+		assert_eq!(cpu.get_rx(2), 3);
+		assert_eq!(cpu.get_rx(3), 4);
+		assert_eq!(cpu.get_rx(4), 5);
+		assert_eq!(cpu.get_rx(5), 6);
+		assert_eq!(cpu.get_rx(6), 7);
+		assert_eq!(cpu.get_rx(7), 8);
+		assert_eq!(cpu.get_rx(8), 9);
+		assert_eq!(cpu.get_rx(9), 10);
+		assert_eq!(cpu.get_rx(10), 11);
+		assert_eq!(cpu.get_rx(11), 12);
+		assert_eq!(cpu.get_rx(12), 13);
+		assert_eq!(cpu.get_rx(13), 14);
+		assert_eq!(cpu.get_rx(14), 15);
+		assert_eq!(cpu.get_rx(15), 16);
+	}
 }
