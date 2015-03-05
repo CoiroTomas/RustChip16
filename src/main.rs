@@ -14,7 +14,7 @@ mod loading;
 fn main() {
 	let mut args = env::args();
 	let (min, _) = args.size_hint();
-	if min < 2 {
+	if min != 2 {
 		println!("No ROM specified");
 		return;
 	}

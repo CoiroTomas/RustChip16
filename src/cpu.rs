@@ -466,29 +466,24 @@ impl Cpu {
 		op.execute(self, byte1, byte2, byte3);
 	}
 
-	pub fn start_program(&mut self, window: RefCell<Window>) -> () {		
-		let mut update_delta: f64 = 0.0;
-		let mut render_delta: f64 = 0.0;
+	pub fn start_program(&mut self, window: RefCell<Window>) -> () {
+		let mut vblank_delta: f64 = 0.0;
 		for e in events(&window) {
 			if let Some(u) = e.update_args() {
 				let mut dt = u.dt;
-				render_delta += dt;
 				while dt > 0.000001 {
 					dt -= 0.000001;
-					update_delta += 0.000001;
-					self.vblank = update_delta > 1.0 / 60.0;
+					vblank_delta += 0.000001;
+					self.vblank = vblank_delta > 1.0 / 60.0;
 					self.step();
-					if self.vblank {
-						self.vblank = false;
-						update_delta -= 1.0 / 60.0;
-					};
 				}
 			}
 
 			if let Some(r) = e.render_args() {
-				if render_delta > 1.0 / 60.0 {
-					render_delta -= 1.0 / 60.0;
+				if self.vblank {
 					self.graphics.draw_screen(&mut window.borrow_mut(), &r);
+					self.vblank = false;
+					vblank_delta = 0.0;
 				}
 			}
 		}
