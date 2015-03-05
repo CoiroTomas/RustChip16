@@ -602,10 +602,10 @@ fn noti(cpu: &mut Cpu, rx: i8, value: i16) -> () {
 }
 
 fn not(cpu: &mut Cpu, rx: i8, ry: i8) -> () {
-	let rx_val = cpu.get_rx(rx);
+	let rx_val = cpu.get_rx(ry);
 	let result = !rx_val;
 	change_flags_not(cpu, result);
-	cpu.set_rx(ry, result)
+	cpu.set_rx(rx, result)
 }
 
 fn negi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
@@ -615,8 +615,8 @@ fn negi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
 }
 
 fn neg(cpu: &mut Cpu, rx: i8, ry: i8) -> () {
-	let rx_val = cpu.get_rx(rx);
+	let rx_val = cpu.get_rx(ry);
 	let result = -rx_val;
 	change_flags_not(cpu, result);
-	cpu.set_rx(ry, result)
+	cpu.set_rx(rx, result)
 }
