@@ -467,14 +467,15 @@ impl Cpu {
 	}
 
 	pub fn start_program(&mut self, window: RefCell<Window>) -> () {
-		let mut vblank_delta: f64 = 0.0;
+		let mut vblank_dt: f64 = 0.0;
+		let mut cycle_dt: f64 = 0.0;
 		for e in events(&window) {
 			if let Some(u) = e.update_args() {
-				let mut dt = u.dt;
-				while dt > 0.000001 {
-					dt -= 0.000001;
-					vblank_delta += 0.000001;
-					self.vblank = vblank_delta > 1.0 / 60.0;
+				cycle_dt += u.dt;
+				while cycle_dt > 0.000001 || vblank_dt <= 1.0 / 60.0{
+					cycle_dt -= 0.000001;
+					vblank_dt += 0.000001;
+					self.vblank = vblank_dt > 1.0 / 60.0;
 					self.step();
 				}
 			}
@@ -483,7 +484,7 @@ impl Cpu {
 				if self.vblank {
 					self.graphics.draw_screen(&mut window.borrow_mut(), &r);
 					self.vblank = false;
-					vblank_delta = 0.0;
+					vblank_dt = 0.0;
 				}
 			}
 		}
