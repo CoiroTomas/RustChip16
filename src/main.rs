@@ -320,4 +320,36 @@ mod tests {
 		assert_eq!(cpu.get_rx(5), -30000);
 		assert!(cpu.has_negative());
 	}
+	
+	#[test]
+	fn subi() -> () {
+		let mut cpu = stage_1op_test(Opcode::Subi, 5, 0x10, 0x20);
+		assert_eq!(cpu.get_rx(5), -0x2010);
+		assert!(cpu.has_negative());
+		assert!(!cpu.has_carry());
+		assert!(!cpu.has_overflow());
+		assert!(!cpu.has_zero());
+	}
+	
+	#[test]
+	fn sub() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.set_rx(5, 0x2222);
+		cpu.set_rx(6, 0x1111);
+		cpu.add_opcode(Opcode::Sub, 0x65, 0, 0);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(5), 0x1111);
+	}
+	
+	#[test]
+	fn cmpi() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Cmpi, 5, 0x10, 0x7F);
+		cpu.set_rx(5, -30000);
+		cpu.start_test(1);
+		assert!(!cpu.has_negative());
+		assert!(cpu.has_carry());
+		assert!(cpu.has_overflow());
+		assert!(!cpu.has_zero());
+	}
 }

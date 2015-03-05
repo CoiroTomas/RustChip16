@@ -371,7 +371,7 @@ fn add(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 fn change_flags_sub(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
 	cpu.put_carry(result as i32 != (original as i32 - value as i32));
 	cpu.put_zero(result == 0);
-	cpu.put_overflow(sign(original) == sign(value) && sign(result) != sign(original));
+	cpu.put_overflow(sign(original) == sign(-value) && sign(result) != sign(original));
 	cpu.put_negative(result < 0);
 }
 
