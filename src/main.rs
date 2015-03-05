@@ -326,7 +326,7 @@ mod tests {
 		let mut cpu = stage_1op_test(Opcode::Subi, 5, 0x10, 0x20);
 		assert_eq!(cpu.get_rx(5), -0x2010);
 		assert!(cpu.has_negative());
-		assert!(!cpu.has_carry());
+		assert!(cpu.has_carry());
 		assert!(!cpu.has_overflow());
 		assert!(!cpu.has_zero());
 	}
@@ -342,14 +342,227 @@ mod tests {
 	}
 	
 	#[test]
-	fn cmpi() -> () {
+	fn cmpi_flags() -> () {
 		let mut cpu = Cpu::new_test();
 		cpu.add_opcode(Opcode::Cmpi, 5, 0x10, 0x7F);
 		cpu.set_rx(5, -30000);
 		cpu.start_test(1);
 		assert!(!cpu.has_negative());
-		assert!(cpu.has_carry());
+		assert!(!cpu.has_carry());
 		assert!(cpu.has_overflow());
 		assert!(!cpu.has_zero());
+	}
+	
+	#[test]
+	fn andi() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Andi, 15, 0b101, 0b101);
+		cpu.set_rx(15, 0b011000000110);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(15), 0b010000000100);
+		assert!(!cpu.has_negative() && !cpu.has_zero());
+	}
+	
+	#[test]
+	fn and() -> () {
+		let mut cpu1 = Cpu::new_test();
+		cpu1.add_opcode(Opcode::And, 0x65, 0, 0);
+		cpu1.set_rx(5, 1);
+		cpu1.set_rx(6, 2);
+		cpu1.start_test(1);
+		assert_eq!(cpu1.get_rx(5), 0);
+		assert!(!cpu1.has_negative() && cpu1.has_zero());
+		
+		let mut cpu2 = Cpu::new_test();
+		cpu2.add_opcode(Opcode::And2, 0x65, 7, 0);
+		cpu2.set_rx(5, 0xFFFF);
+		cpu2.set_rx(6, 0xF00F);
+		cpu2.start_test(1);
+		assert_eq!(cpu2.get_rx(7), 0xF00F);
+		assert!(cpu2.has_negative() && !cpu2.has_zero());
+	}
+	
+	#[test]
+	fn ori() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Ori, 15, 0xAB, 0x00);
+		cpu.set_rx(15, 0xAB00);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(15), 0xABAB);
+		assert!(cpu.has_negative() && !cpu.has_zero());
+	}
+	
+	#[test]
+	fn or() -> () {
+		let mut cpu1 = Cpu::new_test();
+		cpu1.add_opcode(Opcode::Or, 0x65, 0, 0);
+		cpu1.set_rx(5, 1);
+		cpu1.set_rx(6, 2);
+		cpu1.start_test(1);
+		assert_eq!(cpu1.get_rx(5), 3);
+		assert!(!cpu1.has_negative() && !cpu1.has_zero());
+		
+		let mut cpu2 = Cpu::new_test();
+		cpu2.add_opcode(Opcode::Or2, 0x65, 7, 0);
+		cpu2.set_rx(5, 0x0FF0);
+		cpu2.set_rx(6, 0xF00F);
+		cpu2.start_test(1);
+		assert_eq!(cpu2.get_rx(7), 0xFFFF);
+		assert!(cpu2.has_negative() && !cpu2.has_zero());
+	}
+	
+	#[test]
+	fn xori() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Xori, 15, 0xAB, 0x01);
+		cpu.set_rx(15, 0xAB00);
+		cpu.start_test(1);
+		assert_eq!(cpu.get_rx(15), 0xAAAB);
+		assert!(cpu.has_negative() && !cpu.has_zero());
+	}
+	
+	#[test]
+	fn xor() -> () {
+		let mut cpu1 = Cpu::new_test();
+		cpu1.add_opcode(Opcode::Xor, 0x65, 0, 0);
+		cpu1.set_rx(5, 2);
+		cpu1.set_rx(6, 2);
+		cpu1.start_test(1);
+		assert_eq!(cpu1.get_rx(5), 0);
+		assert!(!cpu1.has_negative() && cpu1.has_zero());
+		
+		let mut cpu2 = Cpu::new_test();
+		cpu2.add_opcode(Opcode::Xor2, 0x65, 7, 0);
+		cpu2.set_rx(5, 0x0FFF);
+		cpu2.set_rx(6, 0xF00F);
+		cpu2.start_test(1);
+		assert_eq!(cpu2.get_rx(7), 0xFFF0);
+		assert!(cpu2.has_negative() && !cpu2.has_zero());
+	}
+	
+	#[test]
+	fn muli() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Muli, 5, 6, 0);
+		cpu.set_rx(5, 10);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), 60);
+		assert!(!cpu.has_carry() && !cpu.has_negative() && !cpu.has_zero());
+	}
+	
+	#[test]
+	fn mul() -> () {
+		let mut cpu1 = Cpu::new_test();
+		cpu1.add_opcode(Opcode::Mul, 0x65, 0, 0);
+		cpu1.set_rx(5, 250);
+		cpu1.set_rx(6, 0);
+		cpu1.start_test(1);
+		assert_eq!(cpu1.get_rx(5), 0);
+		assert!(!cpu1.has_negative() && cpu1.has_zero() && !cpu1.has_carry());
+		
+		let mut cpu2 = Cpu::new_test();
+		cpu2.add_opcode(Opcode::Mul2, 0x65, 7, 0);
+		cpu2.set_rx(5, 250);
+		cpu2.set_rx(6, 250);
+		cpu2.start_test(1);
+		assert_eq!(cpu2.get_rx(7), -3036);
+		assert!(cpu2.has_negative());
+		assert!(cpu2.has_carry());
+		assert!(!cpu2.has_zero());
+	}
+	
+	#[test]
+	fn divi() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Divi, 5, 6, 0);
+		cpu.set_rx(5, 61);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), 10);
+		assert!(cpu.has_carry() && !cpu.has_negative() && !cpu.has_zero());
+	}
+	
+	#[test]
+	fn div() -> () {
+		let mut cpu1 = Cpu::new_test();
+		cpu1.add_opcode(Opcode::Div, 0x65, 0, 0);
+		cpu1.set_rx(5, 250);
+		cpu1.set_rx(6, 260);
+		cpu1.start_test(1);
+		assert_eq!(cpu1.get_rx(5), 0);
+		assert!(!cpu1.has_negative() && cpu1.has_zero() && cpu1.has_carry());
+		
+		let mut cpu2 = Cpu::new_test();
+		cpu2.add_opcode(Opcode::Div2, 0x65, 7, 0);
+		cpu2.set_rx(5, -250);
+		cpu2.set_rx(6, 250);
+		cpu2.start_test(1);
+		assert_eq!(cpu2.get_rx(7), -1);
+		assert!(cpu2.has_negative());
+		assert!(!cpu2.has_carry());
+		assert!(!cpu2.has_zero());
+	}
+	
+	#[test]
+	fn modi() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Modi, 5, 6, 0);
+		cpu.set_rx(5, 61);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), 1);
+		assert!(!cpu.has_negative() && !cpu.has_zero());
+	}
+	
+	#[test]
+	fn mod1() -> () {
+		let mut cpu1 = Cpu::new_test();
+		cpu1.add_opcode(Opcode::Mod, 0x65, 0, 0);
+		cpu1.set_rx(5, 250);
+		cpu1.set_rx(6, 260);
+		cpu1.start_test(1);
+		assert_eq!(cpu1.get_rx(5), 250);
+		assert!(!cpu1.has_negative() && !cpu1.has_zero());
+		
+		let mut cpu2 = Cpu::new_test();
+		cpu2.add_opcode(Opcode::Mod2, 0x65, 7, 0);
+		cpu2.set_rx(5, -240);
+		cpu2.set_rx(6, 250);
+		cpu2.start_test(1);
+		assert_eq!(cpu2.get_rx(7), 10);
+		assert!(!cpu2.has_negative());
+		assert!(!cpu2.has_zero());
+	}
+	
+	#[test]
+	fn remi() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Remi, 5, 6, 0);
+		cpu.set_rx(5, 61);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), 1);
+		assert!(!cpu.has_negative() && !cpu.has_zero());
+	}
+	
+	#[test]
+	fn rem() -> () {
+		let mut cpu1 = Cpu::new_test();
+		cpu1.add_opcode(Opcode::Rem, 0x65, 0, 0);
+		cpu1.set_rx(5, 260);
+		cpu1.set_rx(6, 260);
+		cpu1.start_test(1);
+		assert_eq!(cpu1.get_rx(5), 0);
+		assert!(!cpu1.has_negative() && cpu1.has_zero());
+		
+		let mut cpu2 = Cpu::new_test();
+		cpu2.add_opcode(Opcode::Rem2, 0x65, 7, 0);
+		cpu2.set_rx(5, -240);
+		cpu2.set_rx(6, 250);
+		cpu2.start_test(1);
+		assert_eq!(cpu2.get_rx(7), -240);
+		assert!(cpu2.has_negative());
+		assert!(!cpu2.has_zero());
 	}
 }

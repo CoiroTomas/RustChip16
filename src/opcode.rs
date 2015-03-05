@@ -200,12 +200,12 @@ impl Opcode {
 				div(cpu, (y, x), x);
 			},
 			Div2 => div(cpu, separate_byte(byte1), byte2),
-			Modi => divi(cpu, byte1, join_bytes(byte2, byte3)),
+			Modi => modi(cpu, byte1, join_bytes(byte2, byte3)),
 			Mod => {
 				let (y, x) = separate_byte(byte1);
-				div(cpu, (y, x), x);
+				mod1(cpu, (y, x), x);
 			},
-			Mod2 => div(cpu, separate_byte(byte1), byte2),
+			Mod2 => mod1(cpu, separate_byte(byte1), byte2),
 			Remi => remi(cpu, byte1, join_bytes(byte2, byte3)),
 			Rem => {
 				let (y, x) = separate_byte(byte1);
@@ -369,10 +369,8 @@ fn add(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 }
 
 fn change_flags_sub(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry(result as i32 != (original as i32 - value as i32));
-	cpu.put_zero(result == 0);
-	cpu.put_overflow(sign(original) == sign(-value) && sign(result) != sign(original));
-	cpu.put_negative(result < 0);
+	change_flags_add(cpu, original, -value, result);
+	cpu.put_carry(original as u16 as u32 - value as u16 as u32 > 0xFFFFu32);
 }
 
 fn subi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
@@ -502,6 +500,21 @@ fn div(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 	cpu.set_rx(rz, result)
 }
 
+fn modi(cpu: &mut Cpu, rx: i8, value: i16) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let result: i16 = (rx_val % value + value) % value;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rx, result);
+}
+
+fn mod1(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
+	let rx_val = cpu.get_rx(rx);
+	let ry_val = cpu.get_rx(ry);
+	let result = (rx_val % ry_val + ry_val) % ry_val;
+	change_flags_bitwise(cpu, result);
+	cpu.set_rx(rz, result)
+}
+
 fn remi(cpu: &mut Cpu, rx: i8, value: i16) -> () {
 	let rx_val = cpu.get_rx(rx);
 	let result: i16 = rx_val % value;
@@ -582,7 +595,7 @@ fn change_flags_not(cpu: &mut Cpu, result: i16) -> () {
 	cpu.put_negative(result < 0);
 }
 
-fn noti(cpu: &mut Cpu, rx:i8, value: i16) -> () {
+fn noti(cpu: &mut Cpu, rx: i8, value: i16) -> () {
 	let result = !value;
 	change_flags_not(cpu, result);
 	cpu.set_rx(rx, value);

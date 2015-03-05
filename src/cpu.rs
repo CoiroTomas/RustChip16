@@ -336,11 +336,11 @@ impl Cpu {
 	}
 	
 	pub fn get_rx(&mut self, rx: i8) -> i16 {
-		self.rx[rx as usize]
+		self.rx[rx as u8 as usize]
 	}
 	
 	pub fn set_rx(&mut self, rx: i8, value: i16) -> () {
-		self.rx[rx as usize] = value;
+		self.rx[rx as u8 as usize] = value;
 	}
 	
 	pub fn pop_stack(&mut self) -> i16 {
