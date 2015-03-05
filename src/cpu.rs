@@ -304,11 +304,11 @@ impl Cpu {
 	}
 	
 	pub fn load_pal(&mut self, dir: i16) -> () {
+		let dir = dir as u16 as usize;
 		for i in 0..16 {
-			let dir = dir as usize;
-			let high: u32 = (self.memory.read_byte(dir + (i * 3)) as i32 as u32) << 16;
-			let middle: u32 = (self.memory.read_byte(dir + (i * 3) + 1) as i32 as u32) << 8;
-			let low: u32 = self.memory.read_byte(dir + (i * 3) + 2) as i32 as u32;
+			let high: u32 = (self.memory.read_byte(dir + (i * 3)) as u8 as u32) << 16;
+			let middle: u32 = (self.memory.read_byte(dir + (i * 3) + 1) as u8 as u32) << 8;
+			let low: u32 = self.memory.read_byte(dir + (i * 3) + 2) as u8 as u32;
 			self.graphics.palette[i] = high + middle + low;
 		}
 	}

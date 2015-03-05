@@ -721,4 +721,65 @@ mod tests {
 		assert_eq!(cpu.get_rx(14), 15);
 		assert_eq!(cpu.get_rx(15), 16);
 	}
+	
+	#[test]
+	fn pushf_popf() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Pushf, 0, 0, 0);
+		cpu.add_opcode(Opcode::Popf, 0, 0, 0);
+		
+		cpu.put_carry(true);
+		
+		cpu.start_test(1);
+		assert_eq!(cpu.sp, 0xFDF2);
+		
+		cpu.put_carry(false);
+		cpu.step();
+		
+		assert!(cpu.has_carry());
+		assert_eq!(cpu.sp, 0xFDF0);
+	}
+	
+	#[test]
+	fn palette() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Pal, 0, 0x00, 0x0D);
+		cpu.memory.write_byte(0xD00, 0xFF);//first color
+		cpu.memory.write_byte(0xD01, 0xFF);
+		cpu.memory.write_byte(0xD02, 0xFF);
+		
+		cpu.memory.write_byte(0xD03, 0xEE);//second color
+		cpu.memory.write_byte(0xD04, 0xEE);
+		cpu.memory.write_byte(0xD05, 0xEE);
+		
+		cpu.memory.write_byte(0xD06, 0xDD);//third color
+		cpu.memory.write_byte(0xD07, 0xDD);
+		cpu.memory.write_byte(0xD08, 0xDD);
+		
+		cpu.memory.write_byte(0xD09, 0xCC);//fourth color
+		cpu.memory.write_byte(0xD0A, 0xCC);
+		cpu.memory.write_byte(0xD0B, 0xCC);
+		
+		cpu.memory.write_byte(0xD0C, 0xBB);//fifth color
+		cpu.memory.write_byte(0xD0D, 0xBB);
+		cpu.memory.write_byte(0xD0E, 0xBB);
+		
+		cpu.memory.write_byte(0xD00 + 45, 0x11);//sixteenth color
+		cpu.memory.write_byte(0xD00 + 46, 0x11);
+		cpu.memory.write_byte(0xD00 + 47, 0x11);
+		
+		assert_eq!(cpu.graphics.palette[0], 0);
+		assert_eq!(cpu.graphics.palette[1], 0);
+		assert_eq!(cpu.graphics.palette[2], 0x888888u32);
+		assert_eq!(cpu.graphics.palette[15], 0xFFFFFFu32);
+		
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.graphics.palette[0], 0xFFFFFFu32);
+		assert_eq!(cpu.graphics.palette[1], 0xEEEEEEu32);
+		assert_eq!(cpu.graphics.palette[2], 0xDDDDDDu32);
+		assert_eq!(cpu.graphics.palette[3], 0xCCCCCCu32);
+		assert_eq!(cpu.graphics.palette[4], 0xBBBBBBu32);
+		assert_eq!(cpu.graphics.palette[15], 0x111111u32);
+	}
 }
