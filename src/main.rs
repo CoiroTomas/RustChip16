@@ -931,13 +931,14 @@ mod tests {
 		cpu.add_opcode(Opcode::Drw, 0x65, 0x55, 0x55);
 		cpu.set_rx(5, 10);
 		cpu.set_rx(6, 20);
+		cpu.flip(false, false);
 		
 		cpu.memory.write_byte(0x5555, 0xFE);
 		cpu.memory.write_byte(0x5555 + 1, 0xDC);
 		cpu.memory.write_byte(0x5555 + 2, 0xBA);
-		cpu.memory.write_byte(0x5555 + 10, 0x98);
-		cpu.memory.write_byte(0x5555 + 10 + 1, 0x76);
-		cpu.memory.write_byte(0x5555 + 10 * 2, 0x54);
+		cpu.memory.write_byte(0x5555 + 5, 0x98);
+		cpu.memory.write_byte(0x5555 + 5 + 1, 0x76);
+		cpu.memory.write_byte(0x5555 + 5 * 2, 0x54);
 		
 		cpu.start_test(2);
 		
@@ -946,19 +947,136 @@ mod tests {
 		
 		let screen = cpu.graphics.screen; //320x240
 		
-		assert_eq!(screen[320 * 6 + 5], 0xF);
-		assert_eq!(screen[320 * 6 + 6], 0xE);
-		assert_eq!(screen[320 * 6 + 7], 0xD);
-		assert_eq!(screen[320 * 6 + 8], 0xC);
-		assert_eq!(screen[320 * 6 + 9], 0xB);
-		assert_eq!(screen[320 * 6 + 10], 0xA);
+		assert_eq!(screen[320 * 20 + 10], 0xF);
+		assert_eq!(screen[320 * 20 + 11], 0xE);
+		assert_eq!(screen[320 * 20 + 12], 0xD);
+		assert_eq!(screen[320 * 20 + 13], 0xC);
+		assert_eq!(screen[320 * 20 + 14], 0xB);
+		assert_eq!(screen[320 * 20 + 15], 0xA);
 		
-		assert_eq!(screen[320 * 7 + 5], 0x9);
-		assert_eq!(screen[320 * 7 + 6], 0x8);
-		assert_eq!(screen[320 * 7 + 7], 0x7);
-		assert_eq!(screen[320 * 7 + 8], 0x6);
+		assert_eq!(screen[320 * 21 + 10], 0x9);
+		assert_eq!(screen[320 * 21 + 11], 0x8);
+		assert_eq!(screen[320 * 21 + 12], 0x7);
+		assert_eq!(screen[320 * 21 + 13], 0x6);
 		
-		assert_eq!(screen[320 * 8 + 5], 0x5);
-		assert_eq!(screen[320 * 8 + 6], 0x4);
+		assert_eq!(screen[320 * 22 + 10], 0x5);
+		assert_eq!(screen[320 * 22 + 11], 0x4);
+	}
+	
+	#[test]
+	fn drw_noflipv_fliph() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Spr, 0, 5, 10);
+		cpu.add_opcode(Opcode::Drw, 0x65, 0x55, 0x55);
+		cpu.set_rx(5, 10);
+		cpu.set_rx(6, 20);
+		cpu.flip(true, false);
+		
+		cpu.memory.write_byte(0x5555, 0xFE);
+		cpu.memory.write_byte(0x5555 + 1, 0xDC);
+		cpu.memory.write_byte(0x5555 + 2, 0xBA);
+		cpu.memory.write_byte(0x5555 + 5, 0x98);
+		cpu.memory.write_byte(0x5555 + 5 + 1, 0x76);
+		cpu.memory.write_byte(0x5555 + 5 * 2, 0x54);
+		
+		cpu.start_test(2);
+		
+		assert_eq!(cpu.graphics.state.spritew, 5);
+		assert_eq!(cpu.graphics.state.spriteh, 10);
+		
+		let screen = cpu.graphics.screen; //320x240
+		
+		assert_eq!(screen[320 * 20 + 19], 0xF);
+		assert_eq!(screen[320 * 20 + 18], 0xE);
+		assert_eq!(screen[320 * 20 + 17], 0xD);
+		assert_eq!(screen[320 * 20 + 16], 0xC);
+		assert_eq!(screen[320 * 20 + 15], 0xB);
+		assert_eq!(screen[320 * 20 + 14], 0xA);
+
+		assert_eq!(screen[320 * 21 + 19], 0x9);
+		assert_eq!(screen[320 * 21 + 18], 0x8);
+		assert_eq!(screen[320 * 21 + 17], 0x7);
+		assert_eq!(screen[320 * 21 + 16], 0x6);
+		
+		assert_eq!(screen[320 * 22 + 19], 0x5);
+		assert_eq!(screen[320 * 22 + 18], 0x4);
+	}
+	
+	#[test]
+	fn drw_nofliph_flipv() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Spr, 0, 5, 10);
+		cpu.add_opcode(Opcode::Drw, 0x65, 0x55, 0x55);
+		cpu.set_rx(5, 10);
+		cpu.set_rx(6, 20);
+		cpu.flip(false, true);
+		
+		cpu.memory.write_byte(0x5555, 0xFE);
+		cpu.memory.write_byte(0x5555 + 1, 0xDC);
+		cpu.memory.write_byte(0x5555 + 2, 0xBA);
+		cpu.memory.write_byte(0x5555 + 5, 0x98);
+		cpu.memory.write_byte(0x5555 + 5 + 1, 0x76);
+		cpu.memory.write_byte(0x5555 + 5 * 2, 0x54);
+		
+		cpu.start_test(2);
+		
+		assert_eq!(cpu.graphics.state.spritew, 5);
+		assert_eq!(cpu.graphics.state.spriteh, 10);
+		
+		let screen = cpu.graphics.screen; //320x240
+		
+		assert_eq!(screen[320 * 29 + 10], 0xF);
+		assert_eq!(screen[320 * 29 + 11], 0xE);
+		assert_eq!(screen[320 * 29 + 12], 0xD);
+		assert_eq!(screen[320 * 29 + 13], 0xC);
+		assert_eq!(screen[320 * 29 + 14], 0xB);
+		assert_eq!(screen[320 * 29 + 15], 0xA);
+
+		assert_eq!(screen[320 * 28 + 10], 0x9);
+		assert_eq!(screen[320 * 28 + 11], 0x8);
+		assert_eq!(screen[320 * 28 + 12], 0x7);
+		assert_eq!(screen[320 * 28 + 13], 0x6);
+		
+		assert_eq!(screen[320 * 27 + 10], 0x5);
+		assert_eq!(screen[320 * 27 + 11], 0x4);
+	}
+	
+	#[test]
+	fn drw_flip() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Spr, 0, 5, 10);
+		cpu.add_opcode(Opcode::Drw, 0x65, 0x55, 0x55);
+		cpu.set_rx(5, 10);
+		cpu.set_rx(6, 20);
+		cpu.flip(true, true);
+		
+		cpu.memory.write_byte(0x5555, 0xFE);
+		cpu.memory.write_byte(0x5555 + 1, 0xDC);
+		cpu.memory.write_byte(0x5555 + 2, 0xBA);
+		cpu.memory.write_byte(0x5555 + 5, 0x98);
+		cpu.memory.write_byte(0x5555 + 5 + 1, 0x76);
+		cpu.memory.write_byte(0x5555 + 5 * 2, 0x54);
+		
+		cpu.start_test(2);
+		
+		assert_eq!(cpu.graphics.state.spritew, 5);
+		assert_eq!(cpu.graphics.state.spriteh, 10);
+		
+		let screen = cpu.graphics.screen; //320x240
+		
+		assert_eq!(screen[320 * 29 + 19], 0xF);
+		assert_eq!(screen[320 * 29 + 18], 0xE);
+		assert_eq!(screen[320 * 29 + 17], 0xD);
+		assert_eq!(screen[320 * 29 + 16], 0xC);
+		assert_eq!(screen[320 * 29 + 15], 0xB);
+		assert_eq!(screen[320 * 29 + 14], 0xA);
+
+		assert_eq!(screen[320 * 28 + 19], 0x9);
+		assert_eq!(screen[320 * 28 + 18], 0x8);
+		assert_eq!(screen[320 * 28 + 17], 0x7);
+		assert_eq!(screen[320 * 28 + 16], 0x6);
+		
+		assert_eq!(screen[320 * 27 + 19], 0x5);
+		assert_eq!(screen[320 * 27 + 18], 0x4);
 	}
 }

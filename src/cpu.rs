@@ -160,12 +160,13 @@ impl Graphics {
 			for x in 0i16..spritew {
 				let mut x = x;
 				let mut y = y;
+				
 				if self.state.hflip {
-					x = spritew - x;
+					x = (spritew - 1) - x;
 				}
 				
 				if self.state.vflip {
-					y = spriteh - y;
+					y = (spriteh - 1) - y;
 				}
 				
 				let x = x * 2;
@@ -178,18 +179,18 @@ impl Graphics {
 				}
 
 				let pixels = mem.read_byte((y as u16 * spritew as u16
-					+ (x as u16 / 2)
+					+ x as u16 / 2
 					+ spr_address as u16)
 				as usize);
 				let (hh_pixel, ll_pixel) = separate_byte(pixels);
 				let odd_pixel: u8;
 				let even_pixel: u8;
 				if self.state.hflip {
-					odd_pixel = ll_pixel as u8;
-					even_pixel = hh_pixel as u8;
-				} else {
-					even_pixel = ll_pixel as u8;
 					odd_pixel = hh_pixel as u8;
+					even_pixel = ll_pixel as u8;
+				} else {
+					even_pixel = hh_pixel as u8;
+					odd_pixel = ll_pixel as u8;
 				}
 				
 				let x = x as u16;
