@@ -161,15 +161,7 @@ impl Graphics {
 				let mut x = x;
 				let mut y = y;
 				
-				if self.state.hflip {
-					x = (spritew - 1) - x;
-				}
-				
-				if self.state.vflip {
-					y = (spriteh - 1) - y;
-				}
-				
-				let x = x * 2;
+				x = x * 2;
 				if (spr_x + x) < 0
 					|| (spr_x + x) > 319
 					|| (spr_y + y) < 0
@@ -191,6 +183,14 @@ impl Graphics {
 				} else {
 					even_pixel = hh_pixel as u8;
 					odd_pixel = ll_pixel as u8;
+				}
+				
+				if self.state.hflip {
+					x = ((spritew - 1) - x / 2) * 2;
+				}
+				
+				if self.state.vflip {
+					y = (spriteh - 1) - y;
 				}
 				
 				let x = x as u16;
