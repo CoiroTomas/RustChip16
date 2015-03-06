@@ -143,52 +143,41 @@ impl Graphics {
 	}
 
 	pub fn drw(&mut self, mem: &mut Memory, spr_x: i16, spr_y: i16, spr_address: i16) -> bool {
+		let spritew = self.state.spritew as u16 as i16;
+		let spriteh = self.state.spriteh as u16 as i16;
 		if spr_x > 319
 			|| spr_y > 239
-			|| self.state.spritew == 0
-			|| self.state.spriteh == 0
-			|| (spr_x + (self.state.spritew * 2) as i16) < 0
-			|| (spr_y + self.state.spriteh as i16) < 0
+			|| spritew == 0
+			|| spriteh == 0
+			|| (spr_x + spritew * 2) < 0
+			|| (spr_y + spriteh) < 0
 		{
 			return false;
 		}
 
-		let ix_start: i16;
-		let ix_end: i16;
-		if self.state.hflip {
-			ix_start = (self.state.spritew  - 1) as i16;
-			ix_end = -1;
-		} else {
-			ix_start = 0;
-			ix_end = self.state.spritew as i16;
-		}
-
-		let iy_start: i16;
-		let iy_end: i16;
-		if self.state.vflip {
-			iy_start = (self.state.spriteh - 1) as i16;
-			iy_end = -1;
-		} else {
-			iy_start = 0;
-			iy_end = self.state.spriteh as i16;
-		}
-
 		let mut hit: u8 = 0;
-		let mut j: u16 = 0;
-		let mut i: u16;
-		for y in iy_start..iy_end {
-			i = 0;
-			for x in ix_start..ix_end {
+		for y in 0i16..spriteh {
+			for x in 0i16..spritew {
+				let mut x = x;
+				let mut y = y;
+				if self.state.hflip {
+					x = spritew - x;
+				}
+				
+				if self.state.vflip {
+					y = spriteh - y;
+				}
+				
 				let x = x * 2;
-				if (i as i16 + x) < 0
-					|| (i as i16 + x) > 319
-					|| (j as i16 + y) < 0
-					|| (j as i16 + y) > 239
+				if (spr_x + x) < 0
+					|| (spr_x + x) > 319
+					|| (spr_y + y) < 0
+					|| (spr_y + y) > 239
 				{
 					continue;
 				}
 
-				let pixels = mem.read_byte((y as u16 * self.state.spritew as u16
+				let pixels = mem.read_byte((y as u16 * spritew as u16
 					+ (x as u16 / 2)
 					+ spr_address as u16)
 				as usize);
@@ -202,21 +191,21 @@ impl Graphics {
 					even_pixel = ll_pixel as u8;
 					odd_pixel = hh_pixel as u8;
 				}
+				
+				let x = x as u16;
+				let y = y as u16;
 
 				if even_pixel != 0 {
-					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i) as usize];
-					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i) as usize] = even_pixel;
+					hit |= self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x) as usize];
+					self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x) as usize] = even_pixel;
 				}
 
 				if odd_pixel != 0 {
-					hit |= self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i + 1) as usize];
-					self.screen[(320*(spr_y as u16 + j) + spr_x as u16 + i + 1) as usize] = odd_pixel;
+					hit |= self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x + 1) as usize];
+					self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x + 1) as usize] = odd_pixel;
 				}
-				i += 2;
 			}
-			j += 1;
 		}
-
 		hit != 0
 	}
 
