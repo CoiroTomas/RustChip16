@@ -362,11 +362,9 @@ impl Cpu {
 	}
 	
 	pub fn popall(&mut self) -> () {
-		let mut i = 15i8;
-		while i >= 0 {
+		for i in 0..16i8 {
 			let val = self.pop_stack();
-			self.set_rx(i, val);
-			i -= 1;
+			self.set_rx(15 - i, val);
 		}
 	}
 	
@@ -449,7 +447,7 @@ impl Cpu {
 			0xB => (self.has_overflow() == self.has_negative()) && !self.has_zero(),
 			0xC => (self.has_overflow() == self.has_negative()),
 			0xD => (self.has_overflow() != self.has_negative()),
-			0xE => (self.has_overflow() != self.has_negative()) || !self.has_zero(),
+			0xE => (self.has_overflow() != self.has_negative()) || self.has_zero(),
 			_ => panic!("Failed to find flag: {}", index),
 		}
 	}

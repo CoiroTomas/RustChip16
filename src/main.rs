@@ -161,8 +161,48 @@ mod tests {
 			panic!("{}", 9);
 		}
 		
+		cpu.put_carry(true);
 		if !cpu.check_flags(10) {
 			panic!("{}", 10);
+		}
+		
+		cpu.put_negative(true);
+		cpu.put_overflow(true);
+		cpu.put_zero(false);
+		if !cpu.check_flags(11) {
+			panic!("{}", 11);
+		}
+		
+		cpu.put_negative(false);
+		cpu.put_overflow(false);
+		cpu.put_zero(false);
+		if !cpu.check_flags(11) {
+			panic!("{}", 11);
+		}
+		
+		cpu.put_negative(true);
+		cpu.put_overflow(true);
+		cpu.put_zero(true);
+		if cpu.check_flags(11) {
+			panic!("{}", 11);
+		}
+		
+		cpu.put_negative(true);
+		cpu.put_overflow(true);
+		if !cpu.check_flags(12) {
+			panic!("{}", 12);
+		}
+		
+		cpu.put_negative(false);
+		cpu.put_overflow(false);
+		if !cpu.check_flags(12) {
+			panic!("{}", 12);
+		}
+		
+		cpu.put_negative(false);
+		cpu.put_overflow(true);
+		if cpu.check_flags(12) {
+			panic!("{}", 12);
 		}
 		
 		cpu.put_overflow(true);
@@ -175,6 +215,27 @@ mod tests {
 		cpu.put_negative(true);
 		if cpu.check_flags(13) {
 			panic!("{}", 13);
+		}
+		
+		cpu.put_overflow(true);
+		cpu.put_negative(false);
+		cpu.put_zero(false);
+		if !cpu.check_flags(14) {
+			panic!("{}", 14);
+		}
+		
+		cpu.put_overflow(true);
+		cpu.put_negative(true);
+		cpu.put_zero(false);
+		if cpu.check_flags(14) {
+			panic!("{}", 14);
+		}
+		
+		cpu.put_overflow(false);
+		cpu.put_negative(false);
+		cpu.put_zero(true);
+		if !cpu.check_flags(14) {
+			panic!("{}", 14);
 		}
 	}
 	
