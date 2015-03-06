@@ -782,4 +782,84 @@ mod tests {
 		assert_eq!(cpu.graphics.palette[4], 0xBBBBBBu32);
 		assert_eq!(cpu.graphics.palette[15], 0x111111u32);
 	}
+	
+	#[test]
+	fn noti() -> () {
+		let mut cpu = stage_1op_test(Opcode::Noti, 5, 6, 0);
+		assert_eq!(cpu.get_rx(5), !6);
+	}
+	
+	#[test]
+	fn negi() -> () {
+		let mut cpu = stage_1op_test(Opcode::Negi, 5, 6, 0);
+		assert_eq!(cpu.get_rx(5), -6);
+	}
+	
+	#[test]
+	fn not() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Not, 5, 0, 0);
+		
+		cpu.set_rx(5, 10);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), !10);
+		assert!(!cpu.has_zero() && cpu.has_negative());
+		
+		cpu.set_rx(5, 0);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), !0);
+		assert!(!cpu.has_zero() && cpu.has_negative());
+		
+		
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Not2, 0x05, 0, 0);
+		
+		cpu.set_rx(0, 10);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), !10);
+		assert!(!cpu.has_zero() && cpu.has_negative());
+		
+		cpu.set_rx(0, !0);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), 0);
+		assert!(cpu.has_zero() && !cpu.has_negative());
+	}
+	
+	#[test]
+	fn neg() -> () {
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Neg, 5, 0, 0);
+		
+		cpu.set_rx(5, 10);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), -10);
+		assert!(!cpu.has_zero() && cpu.has_negative());
+		
+		cpu.set_rx(5, 0);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), -0);
+		assert!(cpu.has_zero() && !cpu.has_negative());
+		
+		
+		let mut cpu = Cpu::new_test();
+		cpu.add_opcode(Opcode::Neg2, 0x05, 0, 0);
+		
+		cpu.set_rx(0, 10);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), -10);
+		assert!(!cpu.has_zero() && cpu.has_negative());
+		
+		cpu.set_rx(0, -0);
+		cpu.start_test(1);
+		
+		assert_eq!(cpu.get_rx(5), 0);
+		assert!(cpu.has_zero() && !cpu.has_negative());
+	}
 }

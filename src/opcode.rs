@@ -598,7 +598,7 @@ fn change_flags_not(cpu: &mut Cpu, result: i16) -> () {
 fn noti(cpu: &mut Cpu, rx: i8, value: i16) -> () {
 	let result = !value;
 	change_flags_not(cpu, result);
-	cpu.set_rx(rx, value);
+	cpu.set_rx(rx, result);
 }
 
 fn not(cpu: &mut Cpu, rx: i8, ry: i8) -> () {
@@ -611,7 +611,7 @@ fn not(cpu: &mut Cpu, rx: i8, ry: i8) -> () {
 fn negi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
 	let result = -value;
 	change_flags_not(cpu, result);
-	cpu.set_rx(rx, value);
+	cpu.set_rx(rx, result);
 }
 
 fn neg(cpu: &mut Cpu, rx: i8, ry: i8) -> () {
