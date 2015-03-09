@@ -460,7 +460,7 @@ fn xor(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 }
 
 fn change_flags_mul(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry(result as i32 != (original as i32).wrapping_mul(value as i32));
+	cpu.put_carry((original as u16 as u32).wrapping_mul(value as u16 as u32) > 0xFFFFu32);
 	cpu.put_zero(result == 0);
 	cpu.put_negative(result < 0);
 }
