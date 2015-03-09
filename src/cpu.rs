@@ -443,11 +443,12 @@ impl Cpu {
 	}
 	
 	pub fn step(&mut self) -> () {
-		if self.pc >= 0xFFFF {
+		if self.pc >= 0xFFFC {
 			panic!("The instruction pointer has run out of memory to read");
 		}
 		let pc = self.pc as usize;
 		let op = self.memory.read_byte(pc);
+
 		let op: opcode::Opcode = to_opcode(op);
 		let byte1 = self.memory.read_byte(pc + 1);
 		let byte2 = self.memory.read_byte(pc + 2);

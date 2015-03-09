@@ -23,45 +23,42 @@ pub fn load_c16(file: &mut File, cpu: &mut Cpu) -> () {
 		Ok(number) => number,
 		Err(e) => panic!("{}", e.desc)
 	};
-	if magic_number == 0x43483135 {
-		match file.read_u8() {
-			Ok(_) => {},
-			Err(e) => panic!("{}", e.desc)
-		};
-
-		match file.read_u8() {
-			Ok(version) => version,
-			Err(e) => panic!("{}", e.desc)
-		};
-
-		let rom_size: u32 = match file.read_be_u32() {
-			Ok(rom) => rom,
-			Err(e) => panic!("{}", e.desc)
-		};
-		cpu.pc = match file.read_be_u16() {
-			Ok(ip) => ip,
-			Err(e) => panic!("{}", e.desc)
-		};
-		let checksum: u32 = match file.read_be_u32(){
-			Ok(sum) => sum,
-			Err(e) => panic!("{}", e.desc)
-		};
-
-		check_rom_size(file, rom_size);
-		crc32_checksum(file, checksum);
-
-		match file.seek(0x10, old_io::SeekSet){
-			Ok(ok) => ok,
-			Err(e) => panic!("{}", e.desc)
-		};
-		load_bin(file, cpu);
-	} else {
-		match file.seek(0, old_io::SeekSet){
-			Ok(ok) => ok,
-			Err(e) => panic!("{}", e.desc)
-		};
-		load_bin(file, cpu);
+	if magic_number != 0x43483136 {
+		panic!("Invalid magic number, expected 0x43483136 but found {:X}", magic_number);
 	}
+	
+	match file.read_u8() {
+		Ok(_) => {},
+		Err(e) => panic!("{}", e.desc)
+	};
+	
+	match file.read_u8() {
+	Ok(version) => version,
+		Err(e) => panic!("{}", e.desc)
+	};
+
+	let rom_size: u32 = match file.read_le_u32() {
+		Ok(rom) => rom,
+		Err(e) => panic!("{}", e.desc)
+	};
+	cpu.pc = match file.read_be_u16() {
+		Ok(ip) => ip,
+		Err(e) => panic!("{}", e.desc)
+	};
+	let checksum: u32 = match file.read_le_u32(){
+		Ok(sum) => sum,
+		Err(e) => panic!("{}", e.desc)
+	};
+
+	check_rom_size(file, rom_size);
+	crc32_checksum(file, checksum);
+
+	match file.seek(0x10, old_io::SeekSet){
+		Ok(ok) => ok,
+		Err(e) => panic!("{}", e.desc)
+	};
+	
+	load_bin(file, cpu);
 }
 
 fn check_rom_size(file: &mut File, rom_size: u32) -> () {
@@ -70,7 +67,7 @@ fn check_rom_size(file: &mut File, rom_size: u32) -> () {
 		Err(e) => panic!("{}", e.desc)
 	};
 	if rom_size as u64 != file_size {
-		panic!("The ROM size is not what the header says");
+		panic!("Invalid ROM size, header says {:X} and it is {:X}", rom_size, file_size);
 	}
 }
 
