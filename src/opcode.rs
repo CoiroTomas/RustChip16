@@ -348,7 +348,7 @@ fn sign(number: i16) -> i8 {
 }
 
 fn change_flags_add(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry(result as i32 != (original as i32).wrapping_add(value as i32));
+	cpu.put_carry((original as u16 as u32).wrapping_add(value as u16 as u32) > 0xFFFFu32);
 	cpu.put_zero(result == 0);
 	cpu.put_overflow(sign(original) == sign(value) && sign(result) != sign(original));
 	cpu.put_negative(result < 0);
