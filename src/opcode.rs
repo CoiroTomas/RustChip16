@@ -1,5 +1,6 @@
 extern crate num;
 extern crate rand;
+use std::num::wrapping::WrappingOps;
 use self::num::integer::Integer;
 use self::rand::distributions::{
 	IndependentSample,
@@ -347,7 +348,7 @@ fn sign(number: i16) -> i8 {
 }
 
 fn change_flags_add(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry(result as i32 != (original as i32 + value as i32));
+	cpu.put_carry(result as i32 != (original as i32).wrapping_add(value as i32));
 	cpu.put_zero(result == 0);
 	cpu.put_overflow(sign(original) == sign(value) && sign(result) != sign(original));
 	cpu.put_negative(result < 0);
@@ -355,7 +356,7 @@ fn change_flags_add(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> ()
 
 fn addi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
 	let rx_val = cpu.get_rx(rx);
-	let result = rx_val + value;
+	let result = rx_val.wrapping_add(value);
 	change_flags_add(cpu, rx_val, value, result);
 	cpu.set_rx(rx, result);
 }
@@ -363,14 +364,14 @@ fn addi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
 fn add(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 	let rx_val = cpu.get_rx(rx);
 	let ry_val = cpu.get_rx(ry);
-	let result = rx_val + ry_val;
+	let result = rx_val.wrapping_add(ry_val);
 	change_flags_add(cpu, rx_val, ry_val, result);
 	cpu.set_rx(rz, result)
 }
 
 fn change_flags_sub(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
 	change_flags_add(cpu, original, -value, result);
-	cpu.put_carry(original as u16 as u32 - value as u16 as u32 > 0xFFFFu32);
+	cpu.put_carry((original as u16 as u32).wrapping_sub(value as u16 as u32) > 0xFFFFu32);
 }
 
 fn subi(cpu: &mut Cpu, rx:i8, value: i16) -> () {
@@ -385,7 +386,7 @@ fn sub(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 
 fn cmpi(cpu: &mut Cpu, rx:i8, value: i16) -> i16 {
 	let rx_val = cpu.get_rx(rx);
-	let result = rx_val - value;
+	let result = rx_val.wrapping_sub(value);
 	change_flags_sub(cpu, rx_val, value, result);
 	result
 }
@@ -393,7 +394,7 @@ fn cmpi(cpu: &mut Cpu, rx:i8, value: i16) -> i16 {
 fn cmp(cpu: &mut Cpu, (ry, rx): (i8, i8)) -> i16 {
 	let rx_val = cpu.get_rx(rx);
 	let ry_val = cpu.get_rx(ry);
-	let result = rx_val - ry_val;
+	let result = rx_val.wrapping_sub(ry_val);
 	change_flags_sub(cpu, rx_val, ry_val, result);
 	result
 }
@@ -459,14 +460,14 @@ fn xor(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 }
 
 fn change_flags_mul(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	cpu.put_carry(result as i32 != (original as i32 * value as i32));
+	cpu.put_carry(result as i32 != (original as i32).wrapping_mul(value as i32));
 	cpu.put_zero(result == 0);
 	cpu.put_negative(result < 0);
 }
 
 fn muli(cpu: &mut Cpu, rx: i8, value: i16) -> () {
 	let rx_val = cpu.get_rx(rx);
-	let result = rx_val * value;
+	let result = rx_val.wrapping_mul(value);
 	change_flags_mul(cpu, rx_val, value, result);
 	cpu.set_rx(rx, result);
 }
@@ -474,7 +475,7 @@ fn muli(cpu: &mut Cpu, rx: i8, value: i16) -> () {
 fn mul(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 	let rx_val = cpu.get_rx(rx);
 	let ry_val = cpu.get_rx(ry);
-	let result = rx_val * ry_val;
+	let result = rx_val.wrapping_mul(ry_val);
 	change_flags_mul(cpu, rx_val, ry_val, result);
 	cpu.set_rx(rz, result)
 }

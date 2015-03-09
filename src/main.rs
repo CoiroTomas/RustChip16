@@ -35,7 +35,7 @@ fn main() {
 }
 
 mod tests {
-	#![allow(dead_code)]
+	#![allow(overflowing_literals, dead_code)]
 	use cpu::Cpu;
 	use opcode::Opcode;
 	
@@ -262,7 +262,12 @@ mod tests {
 		cpu.add_opcode(Opcode::Call, 0, 0x10, 0x20);
 		cpu.pc = 0x2010;
 		cpu.add_opcode(Opcode::Ret, 0, 0, 0);
-		cpu.start_test(2);
+		cpu.start_test(1);
+		assert_eq!(cpu.pc, 0x2010);
+		assert_eq!(cpu.sp, 0xFDF2);
+		assert_eq!(cpu.memory.read_word(0xFDF0), 0x4);
+		
+		cpu.step();
 		
 		assert_eq!(cpu.pc, 0x4);
 	}
