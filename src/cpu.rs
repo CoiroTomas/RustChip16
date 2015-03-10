@@ -2,8 +2,12 @@ use std::old_io::{File, Open, Read};
 use std::cell::RefCell;
 use opcode::{to_opcode};
 use opcode;
+use piston::input::Button;
+use piston::input::keyboard::Key;
 use piston::event::{
 	events,
+	PressEvent,
+    ReleaseEvent,
 	RenderArgs,
 	RenderEvent,
 	UpdateEvent,
@@ -39,6 +43,17 @@ enum Flag {
    	Zero = 1 << 2,
    	Overflow = 1 << 6,
 	Negative = 1 << 7,
+}
+
+enum Pad {
+	Up = 1,
+	Down = 2, 
+	Left = 4,
+	Right = 8,
+	Select = 16,
+	Start = 32,
+	A = 64,
+	B = 128,
 }
 
 struct Graphics {
@@ -458,24 +473,76 @@ impl Cpu {
 	}
 
 	pub fn start_program(&mut self, window: RefCell<Window>) -> () {
-		let mut vblank_dt: f64 = 0.0;
-		let mut cycle_dt: f64 = 0.0;
+		let mut vblank_dt: u8 = 0;
+		let mut controller1: u16 = 0;
+		let mut controller2: u16 = 0;
 		for e in events(&window) {
-			if let Some(u) = e.update_args() {
-				cycle_dt += u.dt;
-				while cycle_dt > 0.000001 || vblank_dt <= 1.0 / 60.0{
-					cycle_dt -= 0.000001;
-					vblank_dt += 0.000001;
-					self.vblank = vblank_dt > 1.0 / 60.0;
+			if let Some(_) = e.update_args() {
+				for _ in 0..8333 {
 					self.step();
+					self.vblank = false;
 				}
+				vblank_dt += 1;
 			}
 
 			if let Some(r) = e.render_args() {
-				if self.vblank {
+				if vblank_dt >= 2 {
 					self.graphics.draw_screen(&mut window.borrow_mut(), &r);
-					self.vblank = false;
-					vblank_dt = 0.0;
+					self.vblank = true;
+					vblank_dt = 0;
+					self.memory.write_word(0xFFF0, controller1 as i16);
+					self.memory.write_word(0xFFF2, controller2 as i16);
+				}
+			}
+			
+			let vblank = self.vblank;
+			if vblank || vblank_dt >= 2 {
+				if let Some(Button::Keyboard(key)) = e.press_args() {
+					match key {
+						Key::NumPad7 => controller1 |= Pad::A as u16,//A1
+						Key::NumPad9 => controller1 |= Pad::B as u16,//B1
+						Key::Right => controller1 |= Pad::Right as u16,//Right1
+						Key::Up => controller1 |= Pad::Up as u16,//Up1
+						Key::Down => controller1 |= Pad::Down as u16,//Down1
+						Key::Left => controller1 |= Pad::Left as u16,//Left1
+						Key::RShift => controller1 |= Pad::Select as u16,//Select1
+						Key::Return => controller1 |= Pad::Start as u16,//Start1
+					
+						Key::H => controller2 |= Pad::A as u16,//A2
+						Key::J => controller2 |= Pad::B as u16,//B2
+						Key::D => controller2 |= Pad::Right as u16,//Right2
+						Key::W => controller2 |= Pad::Up as u16,//Up2
+						Key::S => controller2 |= Pad::Down as u16,//Down2
+						Key::A => controller2 |= Pad::Left as u16,//Left2
+						Key::LCtrl => controller2 |= Pad::Select as u16,//Select2
+						Key::Space => controller2 |= Pad::Start as u16,//Start2
+					
+						_ => {},
+					}
+				}
+			
+				if let Some(Button::Keyboard(key)) = e.release_args() {
+					match key {
+						Key::NumPad7 => controller1 &= !(Pad::A as u16),//A1
+						Key::NumPad9 => controller1 &= !(Pad::B as u16),//B1
+						Key::Right => controller1 &= !(Pad::Right as u16),//Right1
+						Key::Up => controller1 &= !(Pad::Up as u16),//Up1
+						Key::Down => controller1 &= !(Pad::Down as u16),//Down1
+						Key::Left => controller1 &= !(Pad::Left as u16),//Left1
+						Key::RShift => controller1 &= !(Pad::Select as u16),//Select1
+						Key::Return => controller1 &= !(Pad::Start as u16),//Start1
+					
+						Key::H => controller2 &= !(Pad::A as u16),//A2
+						Key::J => controller2 &= !(Pad::B as u16),//B2
+						Key::D => controller2 &= !(Pad::Right as u16),//Right2
+						Key::W => controller2 &= !(Pad::Up as u16),//Up2
+						Key::S => controller2 &= !(Pad::Down as u16),//Down2
+						Key::A => controller2 &= !(Pad::Left as u16),//Left2
+						Key::LCtrl => controller2 &= !(Pad::Select as u16),//Select2
+						Key::Space => controller2 &= !(Pad::Start as u16),//Start2
+					
+						_ => {},
+					}
 				}
 			}
 		}

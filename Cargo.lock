@@ -1,6 +1,6 @@
 [root]
 name = "Rust16"
-version = "0.9.0"
+version = "1.0.0"
 dependencies = [
  "gl 0.0.9 (git+https://github.com/bjz/gl-rs)",
  "num 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)",
