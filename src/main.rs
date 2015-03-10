@@ -534,7 +534,7 @@ mod tests {
 		cpu2.start_test(1);
 		assert_eq!(cpu2.get_rx(7), -3036);
 		assert!(cpu2.has_negative());
-		assert!(cpu2.has_carry());
+		assert!(!cpu2.has_carry());
 		assert!(!cpu2.has_zero());
 	}
 	
