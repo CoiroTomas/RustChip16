@@ -58,8 +58,8 @@ enum Pad {
 
 struct Graphics {
 	pub state: StateRegister,
-	pub palette: [u32; 16], //capacity == 16
-	pub screen: [u8 ; 76800], //capacity == 320x240
+	pub palette: [u32; 16],
+	pub screen: [u8 ; 76800], //320x240
 	size: u32,
 	gl: Option<Gl>,
 }
@@ -73,13 +73,13 @@ struct StateRegister {
 }
 
 struct Memory {
-	memory: [i8; 65536], //capacity == 65536
+	memory: [i8; 65536],
 }
 	
 pub struct Cpu {
 	pub pc: u16,
 	pub sp: u16,
-	rx: [i16; 16], //capacity == 16
+	rx: [i16; 16],
 	flags: i8,
 	pub vblank: bool,
 	pub graphics: Graphics,
@@ -130,7 +130,7 @@ impl Graphics {
 				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
 			screen: [0; 76800],
 			size: multiplier,
-			gl: Some(Gl::new(OpenGL::_3_2)),
+			gl: Some(Gl::new(OpenGL::_3_2)), //Option to allow tests
 		}
 	}
 	
@@ -160,7 +160,7 @@ impl Graphics {
 	pub fn drw(&mut self, mem: &mut Memory, spr_x: i16, spr_y: i16, spr_address: i16) -> bool {
 		let spritew = self.state.spritew as u16 as i16;
 		let spriteh = self.state.spriteh as u16 as i16;
-		if spr_x > 319
+		if spr_x > 319  //If nothing is to be drawn, return
 			|| spr_y > 239
 			|| spritew == 0
 			|| spriteh == 0
@@ -177,7 +177,7 @@ impl Graphics {
 				let mut y = y;
 				
 				x = x * 2;
-				if (spr_x + x) < 0
+				if (spr_x + x) < 0 //If outside boundaries, continue to next iteration
 					|| (spr_x + x) > 319
 					|| (spr_y + y) < 0
 					|| (spr_y + y) > 239
@@ -189,10 +189,11 @@ impl Graphics {
 					+ x as u16 / 2
 					+ spr_address as u16)
 				as usize);
+				
 				let (hh_pixel, ll_pixel) = separate_byte(pixels);
 				let odd_pixel: u8;
 				let even_pixel: u8;
-				if self.state.hflip {
+				if self.state.hflip { //Flips in case of a horizontal flip
 					odd_pixel = hh_pixel as u8;
 					even_pixel = ll_pixel as u8;
 				} else {
@@ -200,7 +201,7 @@ impl Graphics {
 					odd_pixel = ll_pixel as u8;
 				}
 				
-				if self.state.hflip {
+				if self.state.hflip { //When a flip is active, move the byte to the other side
 					x = ((spritew - 1) - x / 2) * 2;
 				}
 				
@@ -211,7 +212,7 @@ impl Graphics {
 				let x = x as u16;
 				let y = y as u16;
 
-				if even_pixel != 0 {
+				if even_pixel != 0 {  //If the pixel is transparent, doesn't draw
 					hit |= self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x) as usize];
 					self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x) as usize] = even_pixel;
 				}
@@ -222,14 +223,14 @@ impl Graphics {
 				}
 			}
 		}
-		hit != 0
+		hit != 0 //If different than zero, put carry
 	}
 
 	pub fn draw_screen(&mut self, _: &mut Window, args: &RenderArgs) -> () {
 		let context = &graphics::Context::abs(args.width as f64, args.height as f64);
 		let mut colours: Vec<[f32;4]> = Vec::with_capacity(16);
 		for p in self.palette.iter() {
-			let v: [f32; 4] = [
+			let v: [f32; 4] = [ //Transforms the palette into something Piston accepts
 				((p & 0xFF0000) >> 16) as f32 / 255.0,
 				((p & 0xFF00) >> 8) as f32 / 255.0,
 				(p & 0xFF) as f32 / 255.0,
@@ -303,7 +304,7 @@ impl Cpu {
 	
 	#[allow(dead_code)]
 	pub fn start_test(&mut self, instructions_to_execute: i8) -> () {
-		self.pc = 0;//Ability to specify how many opcodes you want executed, for testing
+		self.pc = 0; //Ability to specify how many opcodes you want executed, for testing
 		for _ in 0..instructions_to_execute {
 			self.step()
 		}
@@ -368,7 +369,7 @@ impl Cpu {
 	}
 	
 	pub fn popall(&mut self) -> () {
-		for i in 0..16i8 {
+		for i in 0..16i8 { //This syntax doesn't allow descending ranges
 			let val = self.pop_stack();
 			self.set_rx(15 - i, val);
 		}
@@ -479,7 +480,7 @@ impl Cpu {
 		let mut controller2: u16 = 0;
 		for e in events(&window) {
 			if let Some(_) = e.update_args() {
-				for _ in 0..8333 {
+				for _ in 0..8333 { //Delta time is always this number of steps
 					self.step();
 					self.vblank = false;
 				}
@@ -496,54 +497,51 @@ impl Cpu {
 				}
 			}
 			
-			let vblank = self.vblank;
-			if vblank || vblank_dt >= 2 {
-				if let Some(Button::Keyboard(key)) = e.press_args() {
-					match key {
-						Key::NumPad7 => controller1 |= Pad::A as u16,//A1
-						Key::NumPad9 => controller1 |= Pad::B as u16,//B1
-						Key::Right => controller1 |= Pad::Right as u16,//Right1
-						Key::Up => controller1 |= Pad::Up as u16,//Up1
-						Key::Down => controller1 |= Pad::Down as u16,//Down1
-						Key::Left => controller1 |= Pad::Left as u16,//Left1
-						Key::RShift => controller1 |= Pad::Select as u16,//Select1
-						Key::Return => controller1 |= Pad::Start as u16,//Start1
-					
-						Key::H => controller2 |= Pad::A as u16,//A2
-						Key::J => controller2 |= Pad::B as u16,//B2
-						Key::D => controller2 |= Pad::Right as u16,//Right2
-						Key::W => controller2 |= Pad::Up as u16,//Up2
-						Key::S => controller2 |= Pad::Down as u16,//Down2
-						Key::A => controller2 |= Pad::Left as u16,//Left2
-						Key::LCtrl => controller2 |= Pad::Select as u16,//Select2
-						Key::Space => controller2 |= Pad::Start as u16,//Start2
-					
-						_ => {},
-					}
+			if let Some(Button::Keyboard(key)) = e.press_args() {
+				match key {
+					Key::NumPad7 => controller1 |= Pad::A as u16,//A1
+					Key::NumPad9 => controller1 |= Pad::B as u16,//B1
+					Key::Right => controller1 |= Pad::Right as u16,//Right1
+					Key::Up => controller1 |= Pad::Up as u16,//Up1
+					Key::Down => controller1 |= Pad::Down as u16,//Down1
+					Key::Left => controller1 |= Pad::Left as u16,//Left1
+					Key::RShift => controller1 |= Pad::Select as u16,//Select1
+					Key::Return => controller1 |= Pad::Start as u16,//Start1
+				
+					Key::H => controller2 |= Pad::A as u16,//A2
+					Key::J => controller2 |= Pad::B as u16,//B2
+					Key::D => controller2 |= Pad::Right as u16,//Right2
+					Key::W => controller2 |= Pad::Up as u16,//Up2
+					Key::S => controller2 |= Pad::Down as u16,//Down2
+					Key::A => controller2 |= Pad::Left as u16,//Left2
+					Key::LCtrl => controller2 |= Pad::Select as u16,//Select2
+					Key::Space => controller2 |= Pad::Start as u16,//Start2
+				
+					_ => {},
 				}
+			}
 			
-				if let Some(Button::Keyboard(key)) = e.release_args() {
-					match key {
-						Key::NumPad7 => controller1 &= !(Pad::A as u16),//A1
-						Key::NumPad9 => controller1 &= !(Pad::B as u16),//B1
-						Key::Right => controller1 &= !(Pad::Right as u16),//Right1
-						Key::Up => controller1 &= !(Pad::Up as u16),//Up1
-						Key::Down => controller1 &= !(Pad::Down as u16),//Down1
-						Key::Left => controller1 &= !(Pad::Left as u16),//Left1
-						Key::RShift => controller1 &= !(Pad::Select as u16),//Select1
-						Key::Return => controller1 &= !(Pad::Start as u16),//Start1
-					
-						Key::H => controller2 &= !(Pad::A as u16),//A2
-						Key::J => controller2 &= !(Pad::B as u16),//B2
-						Key::D => controller2 &= !(Pad::Right as u16),//Right2
-						Key::W => controller2 &= !(Pad::Up as u16),//Up2
-						Key::S => controller2 &= !(Pad::Down as u16),//Down2
-						Key::A => controller2 &= !(Pad::Left as u16),//Left2
-						Key::LCtrl => controller2 &= !(Pad::Select as u16),//Select2
-						Key::Space => controller2 &= !(Pad::Start as u16),//Start2
-					
-						_ => {},
-					}
+			if let Some(Button::Keyboard(key)) = e.release_args() {
+				match key {
+					Key::NumPad7 => controller1 &= !(Pad::A as u16),//A1
+					Key::NumPad9 => controller1 &= !(Pad::B as u16),//B1
+					Key::Right => controller1 &= !(Pad::Right as u16),//Right1
+					Key::Up => controller1 &= !(Pad::Up as u16),//Up1
+					Key::Down => controller1 &= !(Pad::Down as u16),//Down1
+					Key::Left => controller1 &= !(Pad::Left as u16),//Left1
+					Key::RShift => controller1 &= !(Pad::Select as u16),//Select1
+					Key::Return => controller1 &= !(Pad::Start as u16),//Start1
+				
+					Key::H => controller2 &= !(Pad::A as u16),//A2
+					Key::J => controller2 &= !(Pad::B as u16),//B2
+					Key::D => controller2 &= !(Pad::Right as u16),//Right2
+					Key::W => controller2 &= !(Pad::Up as u16),//Up2
+					Key::S => controller2 &= !(Pad::Down as u16),//Down2
+					Key::A => controller2 &= !(Pad::Left as u16),//Left2
+					Key::LCtrl => controller2 &= !(Pad::Select as u16),//Select2
+					Key::Space => controller2 &= !(Pad::Start as u16),//Start2
+				
+					_ => {},
 				}
 			}
 		}
