@@ -20,7 +20,7 @@ cargo build --release
 You can run it with:
 
 ```
-cargo run PATH SCREEN_MULTIPLIER --release
+cargo run PATH SCREEN_MULTIPLIER(optional) --release
 ```
 
 The path is a path to the program you want to run, either a .bin or .c16 file.
