@@ -33,3 +33,8 @@ Arrows to move, Right shift as select, Return as pause, Numpad7 as A and Numpad9
 The controls for the second controller are:
 
 WASD to move, Left control as select, Space as pause, H as A and J as B
+
+
+You can read more about Chip16 in here:
+
+https://github.com/chip16/chip16
