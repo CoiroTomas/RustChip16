@@ -6,7 +6,9 @@ This is a Rust implementation of Chip16.
 It currently mostly works with some glitches and no sound, and control support is really slow.
 
 The non-Rust dependencies are:
+
 SDL2
+
 freetype-6
 
 You can build it with:
