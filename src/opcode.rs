@@ -167,8 +167,8 @@ impl Opcode {
 				sub(cpu, (y, x), x);
 			},
 			Sub2 => sub(cpu, separate_byte(byte1), byte2),
-			Cmpi => {cmpi(cpu, byte1, join_bytes(byte2, byte3));},
-			Cmp => {cmp(cpu, separate_byte(byte1));},
+			Cmpi => {cmpi(cpu, byte1, join_bytes(byte2, byte3));},//Braces necessary because functions
+			Cmp => {cmp(cpu, separate_byte(byte1));},             //Return something different than ()
 			Andi => andi(cpu, byte1, join_bytes(byte2, byte3)),
 			And => {
 				let (y, x) = separate_byte(byte1);
@@ -370,7 +370,7 @@ fn add(cpu: &mut Cpu, (ry, rx): (i8, i8), rz: i8) -> () {
 }
 
 fn change_flags_sub(cpu: &mut Cpu, original: i16, value: i16, result: i16) -> () {
-	change_flags_add(cpu, original, -value, result);
+	change_flags_add(cpu, original, -value, result); //Except for carry, they're the same
 	cpu.put_carry((original as u16 as u32).wrapping_sub(value as u16 as u32) > 0xFFFFu32);
 }
 
