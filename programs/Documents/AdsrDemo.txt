@@ -1,0 +1,21 @@
+========================
+ "AdsrDemo" for Chip16:
+========================
+ 
+ Author: Tykel
+ Date: 03/09/2012
+
+========
+ About:
+========
+
+ Demonstration of the capabilities with the
+ newly added sound opcodes.
+
+===========
+ Controls:
+===========
+
+ UP, DOWN - Select a parameter to change.
+ LEFT - RIGHT - Change the selected value.
+ START - Play the generated sound.

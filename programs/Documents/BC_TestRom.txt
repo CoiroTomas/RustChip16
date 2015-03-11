@@ -1,0 +1,50 @@
+
+ 	CHIP16 Test Rom
+ 
+ 	Check all the are arithmetics push, pop , and store opcodes
+
+	By BestCoder 
+	
+	contact: bestcoder@ymail.com
+
+	Release 07/04/2011   (en)
+
+
+The test rom checks all flags for the arithmetics opcodes. It also check if push and pop is correctly implemented.
+
+If an opcode is mistaken, you will see a message with the opcode number and the concerned flag. Backgroung will be red.
+
+If push and pop are mistaken, you should check both opcodes.
+
+CF = Carry flag
+
+ZF= Zero Flag
+
+NF =Negative Flag
+
+OF = Overflow Flag
+
+UF = Flags mustn't be raised but they are
+
+
+/****************/
+    IMPORTANT
+/***************/
+
+Before using this test rom, you should check manually:
+
+-  14 00 LL HH	CALL HHLL
+-  20 0X LL HH	LDI RX, HHLL
+-  23 YX 00 00	LDM RX, RY
+-  24 YX 00 00	MOV RX, RY
+-  10 00 LL HH	JMP HHLL
+-  40 0X LL HH	ADDI RX, HHLL ,  check the carry flag
+-  50 0X LL HH	SUBI RX, HHLL ,  check the carry flag and zero flag
+-  31 YX 00 00	STM RX, RY
+-  61 YX 00 00	AND RX, RY
+-  90 0X LL HH	MULI RX, HHLL
+-  05 YX LL HH	DRW RX, RY, HHLL
+
+Otherwise you may not see the error message.  You cant use the ASCII rom to test all these opcodes.
+
+!!!!!!!!!!!Happy debugging !!!!!!!

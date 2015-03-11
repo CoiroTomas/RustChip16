@@ -1,0 +1,18 @@
+========================
+ "Triangle" for Chip16:
+========================
+ 
+ Author: Tronix286
+ Date: 07/19/2011
+
+========
+ About:
+========
+
+ Triangle is a Serpinski triangle demo.
+ 
+===========
+ Controls:
+===========
+ 
+ None.

@@ -60,7 +60,7 @@ struct Graphics {
 	pub state: StateRegister,
 	pub palette: [u32; 16], //capacity == 16
 	pub screen: [u8 ; 76800], //capacity == 320x240
-	//size: i32,  //this is for later, when i implement x2 or x4 windows
+	size: u32,
 	gl: Option<Gl>,
 }
 	
@@ -123,13 +123,13 @@ impl StateRegister {
 }
 
 impl Graphics {
-	pub fn new() -> Graphics {
+	pub fn new(multiplier: u32) -> Graphics {
 		Graphics {
 			state: StateRegister::new(),
 			palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
 				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
 			screen: [0; 76800],
-			//size: 1,
+			size: multiplier,
 			gl: Some(Gl::new(OpenGL::_3_2)),
 		}
 	}
@@ -141,7 +141,7 @@ impl Graphics {
 			palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
 				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
 			screen: [0; 76800],
-			//size: 1,
+			size: 1,
 			gl: None,
 		}
 	}
@@ -239,6 +239,7 @@ impl Graphics {
 		
 		let screen = self.screen.iter();
 		let bg = self.state.bg;
+		let size = self.size as f64;
 		match self.gl {
 			Some(ref mut glc) =>
 				glc.draw([0, 0, args.width as i32, args.height as i32], |_, gl| {
@@ -252,7 +253,7 @@ impl Graphics {
 							} else {
 								colours[*pixel as usize]
 							},
-							graphics::rectangle::square(x, y, 1.0),
+							graphics::rectangle::square(x * size, y * size, 1.0 * size),
 							context,
 							gl)
 					}
@@ -263,14 +264,14 @@ impl Graphics {
 }
 
 impl Cpu {
-	pub fn new(file_path: Path) -> Cpu {
+	pub fn new(file_path: Path, multiplier: u32) -> Cpu {
 		let mut file = match File::open_mode(&file_path, Open, Read) {
 		    Ok(file) => file,
    		    Err(e) => panic!("{} {}", e.desc, file_path.display()),
 		};
 		
 		let mut cpu = Cpu {pc: 0, sp: 0xFDF0, rx: [0; 16], flags: 0,
-			vblank: false, graphics: Graphics::new(),
+			vblank: false, graphics: Graphics::new(multiplier),
 			memory: Memory::new(),
 		};
 		let ext = file_path.extension_str();

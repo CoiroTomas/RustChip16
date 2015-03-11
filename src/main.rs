@@ -14,23 +14,30 @@ mod loading;
 fn main() {
 	let mut args = env::args();
 	let (min, _) = args.size_hint();
-	if min != 2 {
+	if min < 2 {
 		println!("No ROM specified");
 		return;
 	}
+	let multiplier: u32;
 	args.next();
 	let path = args.next().unwrap();
-	let window = RefCell::new(Window::new(
-		OpenGL::_3_2,
+	if let Some(multi) = args.next() {
+		//Initialize a multiplier
+		multiplier = multi.trim().parse().ok().unwrap();
+	} else {
+		multiplier = 2;
+	}
+	let window = RefCell::new(Window::new(//Window initialized here
+		OpenGL::_3_2,                     //so there's a context for the Gl initialization
 		piston::window::WindowSettings {
 			title: "RustChip16".to_string(),
 			samples: 0,
-			size: [320, 240],
+			size: [320 * multiplier, 240 * multiplier],
 			fullscreen: false,
 			exit_on_esc: true,
 		}
 	));
-	let mut cpu = Cpu::new(Path::new(path));
+	let mut cpu = Cpu::new(Path::new(path), multiplier);
 	cpu.start_program(window);
 }
 

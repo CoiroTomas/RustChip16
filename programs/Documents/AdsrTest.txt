@@ -1,0 +1,18 @@
+========================
+ "AdsrTest" for Chip16:
+========================
+ 
+ Author: Refraction
+ Date: 03/09/2012
+
+========
+ About:
+========
+
+ This rom will test the implementation of the new sound opcodes.
+
+===========
+ Controls:
+===========
+
+ None.

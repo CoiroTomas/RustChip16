@@ -1,0 +1,18 @@
+======================
+ "Mandel" for Chip16:
+======================
+ 
+ Author: Tronix286
+ Date: 07/24/2011
+
+========
+ About:
+========
+
+ Mandel is a Mandelbrot set demo.
+ 
+===========
+ Controls:
+===========
+ 
+ None.

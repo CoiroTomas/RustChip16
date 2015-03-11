@@ -1,0 +1,19 @@
+============================
+ "SongOfStorms" for Chip16:
+============================
+ 
+ Author: Tykel
+ Date: 03/10/2012
+
+========
+ About:
+========
+
+ This rom will play the "Song of Storms" from
+ The Legend of Zelda: Ocarina of Time.
+
+===========
+ Controls:
+===========
+
+ None.

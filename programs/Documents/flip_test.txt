@@ -1,0 +1,18 @@
+=========================
+ "flip_test" for Chip16:
+=========================
+ 
+ Author: BestCoder
+ Date: 07/04/2011
+
+========
+ About:
+========
+
+ Flip opcode test.
+ 
+===========
+ Controls:
+===========
+ 
+ None.

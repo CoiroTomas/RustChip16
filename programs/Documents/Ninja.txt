@@ -1,0 +1,28 @@
+
+
+/****************************/
+      	  Ninja
+/****************************/
+
+
+
+/**
+*@author BestCoder
+*@contact bestcoder@ymail.com
+*@credits Please, give me my credits if used!
+*/
+
+Release: 11/04/2011  (en)
+
+
+
+Ninja is a little game where you incarnate Naruto. You have to escape from this hell dodging kunais.
+Have fun!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+Original naruto sprites: Bonzai 
+Remake: BestCoder
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. 
+To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/ or 
+send a letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
