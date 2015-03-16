@@ -1,13 +1,14 @@
 use cpu::{Cpu};
-use std::old_io::{File, BytesReader, Seek};
-use std::old_io;
+use std::fs::{File};
+use std::io::{ReadExt, Read, Seek};
+use std::io;
 
 pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {
 	let mut i: usize = 0;
 	for byte in file.bytes() {
 		let byte = match byte {
 			Ok(number) => number as i8,
-			Err(e) => panic!("{}", e.desc),
+			Err(e) => panic!("{}", e.description()),
 		};
 		cpu.memory.write_byte(i, byte);
 		i += 1;
@@ -15,56 +16,54 @@ pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {
 }
 
 pub fn load_c16(file: &mut File, cpu: &mut Cpu) -> () {
-	match file.seek(0x0, old_io::SeekSet){
+	match file.seek(io::SeekFrom::Start(0)){
 			Ok(ok) => ok,
-			Err(e) => panic!("{}", e.desc)
+			Err(e) => panic!("{}", e.description())
 	};
-	let magic_number = match file.read_be_u32() {
-		Ok(number) => number,
-		Err(e) => panic!("{}", e.desc)
-	};
-	if magic_number != 0x43483136 {
-		panic!("Invalid magic number, expected 0x43483136 but found {:X}", magic_number);
+	let mut buf: Vec<u8> = Vec::with_capacity(70000);
+	match file.read_to_end(&mut buf) {
+		Ok(_) => {},
+		Err(e) => panic!("{}", e.description()),
 	}
 	
-	match file.read_u8() {
-		Ok(_) => {},
-		Err(e) => panic!("{}", e.desc)
-	};
+	let magic_number = ((buf[0] as u32) << 24) +
+	                   ((buf[1] as u32) << 16) +
+					   ((buf[2] as u32) << 8) +
+					   (buf[3] as u32);
+	if magic_number != 0x43483136 {
+		panic!("Expected 0x43483136 got {:X} as magic number", magic_number);
+	}
 	
-	match file.read_u8() {
-	Ok(version) => version,
-		Err(e) => panic!("{}", e.desc)
-	};
+	let rom_size = ((buf[9] as u32) << 24) +
+	               ((buf[8] as u32) << 16) +
+				   ((buf[7] as u32) << 8) +
+				   (buf[6] as u32);
 
-	let rom_size: u32 = match file.read_le_u32() {
-		Ok(rom) => rom,
-		Err(e) => panic!("{}", e.desc)
-	};
-	cpu.pc = match file.read_be_u16() {
-		Ok(ip) => ip,
-		Err(e) => panic!("{}", e.desc)
-	};
-	let checksum: u32 = match file.read_le_u32(){
-		Ok(sum) => sum,
-		Err(e) => panic!("{}", e.desc)
-	};
+	let start_address = ((buf[0xA] as u16) << 8) +
+						(buf[0xB] as u16);
+						
+	cpu.pc = start_address;
+	
+	let checksum = ((buf[0xF] as u32) << 24) +
+	               ((buf[0xE] as u32) << 16) +
+				   ((buf[0xD] as u32) << 8) +
+				   (buf[0xC] as u32);
 
 	check_rom_size(file, rom_size);
 	crc32_checksum(file, checksum);
 
-	match file.seek(0x10, old_io::SeekSet){
+	match file.seek(io::SeekFrom::Start(0x10)){
 		Ok(ok) => ok,
-		Err(e) => panic!("{}", e.desc)
+		Err(e) => panic!("{}", e.description())
 	};
 	
 	load_bin(file, cpu);
 }
 
 fn check_rom_size(file: &mut File, rom_size: u32) -> () {
-	let file_size = match file.stat() {
-		Ok(file_stat) => file_stat.size - 0x10,
-		Err(e) => panic!("{}", e.desc)
+	let file_size = match file.metadata() {
+		Ok(file_stat) => file_stat.len() - 0x10,
+		Err(e) => panic!("{}", e.description())
 	};
 	if rom_size as u64 != file_size {
 		panic!("Invalid ROM size, header says {:X} and it is {:X}", rom_size, file_size);
@@ -140,15 +139,15 @@ fn crc32_checksum(file: &mut File, checksum: u32) -> () {
 
 	let mut crc: u32 = 0xFFFFFFFF;
 
-	match file.seek(0x10, old_io::SeekSet){
+	match file.seek(io::SeekFrom::Start(0x10)){
 		Ok(ok) => ok,
-		Err(e) => panic!("{}", e.desc)
+		Err(e) => panic!("{}", e.description())
 	};
 
 	for byte in file.bytes() {
 		let byte = match byte {
 			Ok(number) => number as u8,
-			Err(e) => panic!("{}", e.desc),
+			Err(e) => panic!("{}", e.description()),
 		};
 		crc = (crc >> 8) ^ table[(crc as u8 ^ byte) as usize];
 	}

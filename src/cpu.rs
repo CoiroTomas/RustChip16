@@ -1,4 +1,4 @@
-use std::old_io::{File, Open, Read};
+use std::fs::File;
 use std::cell::RefCell;
 use opcode::{to_opcode};
 use opcode;
@@ -17,6 +17,7 @@ use opengl_graphics::{
 	Gl,
 	OpenGL,
 };
+use std::path::Path;
 use graphics;
 use loading::{load_bin, load_c16};
 
@@ -265,18 +266,18 @@ impl Graphics {
 }
 
 impl Cpu {
-	pub fn new(file_path: Path, multiplier: u32) -> Cpu {
-		let mut file = match File::open_mode(&file_path, Open, Read) {
+	pub fn new(file_path: &Path, multiplier: u32) -> Cpu {
+		let mut file = match File::open(&file_path) {
 		    Ok(file) => file,
-   		    Err(e) => panic!("{} {}", e.desc, file_path.display()),
+   		    Err(e) => panic!("{} {}", e.description(), file_path.display()),
 		};
 		
 		let mut cpu = Cpu {pc: 0, sp: 0xFDF0, rx: [0; 16], flags: 0,
 			vblank: false, graphics: Graphics::new(multiplier),
 			memory: Memory::new(),
 		};
-		let ext = file_path.extension_str();
-		match ext {
+		let ext = file_path.extension().unwrap();
+		match ext.to_str() {
 			Some("bin") => load_bin(&mut file, &mut cpu),
 			Some("c16") => load_c16(&mut file, &mut cpu),
 			_ => panic!("The file is not a valid extension"),

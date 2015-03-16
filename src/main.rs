@@ -7,6 +7,7 @@ use opengl_graphics::OpenGL;
 use sdl2_window::Sdl2Window as Window;
 use cpu::Cpu;
 use std::env;
+use std::path::Path;
 mod cpu;
 mod opcode;
 mod loading;
@@ -37,7 +38,7 @@ fn main() {
 			exit_on_esc: true,
 		}
 	));
-	let mut cpu = Cpu::new(Path::new(path), multiplier);
+	let mut cpu = Cpu::new(Path::new(&path[..]), multiplier);
 	cpu.start_program(window);
 }
 
