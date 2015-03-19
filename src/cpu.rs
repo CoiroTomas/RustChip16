@@ -1,3 +1,4 @@
+extern crate quack;
 use std::fs::File;
 use std::cell::RefCell;
 use opcode::{to_opcode};
@@ -11,12 +12,15 @@ use piston::event::{
 	RenderArgs,
 	RenderEvent,
 	UpdateEvent,
+	MaxFps,
+	Ups,
 };
 use sdl2_window::Sdl2Window as Window;
 use opengl_graphics::{
 	Gl,
 	OpenGL,
 };
+use self::quack::Set;
 use std::path::Path;
 use graphics;
 use loading::{load_bin, load_c16};
@@ -479,13 +483,17 @@ impl Cpu {
 		let mut vblank_dt: u8 = 0;
 		let mut controller1: u16 = 0;
 		let mut controller2: u16 = 0;
-		for e in events(&window) {
+		for e in events(&window)
+				.set(MaxFps(60))
+				.set(Ups(120)) {
 			if let Some(_) = e.update_args() {
-				for _ in 0..8333 { //Delta time is always this number of steps
-					self.step();
-					self.vblank = false;
+				if vblank_dt < 2 {
+					for _ in 0..8333 { //Delta time is always this number of steps
+						self.step();
+						self.vblank = false;
+					}
+					vblank_dt += 1;
 				}
-				vblank_dt += 1;
 			}
 
 			if let Some(r) = e.render_args() {

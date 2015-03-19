@@ -8,6 +8,7 @@ dependencies = [
  "piston2d-graphics 0.0.24 (git+https://github.com/PistonDevelopers/graphics.git)",
  "piston2d-opengl_graphics 0.0.10 (git+https://github.com/PistonDevelopers/opengl_graphics.git)",
  "pistoncore-sdl2_window 0.0.5 (git+https://github.com/PistonDevelopers/sdl2_window.git)",
+ "quack 0.0.13 (git+https://github.com/pistondevelopers/quack)",
  "rand 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.0.28 (git+https://github.com/AngryLawyer/rust-sdl2)",
 ]
