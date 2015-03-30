@@ -61,7 +61,7 @@ enum Pad {
 	B = 128,
 }
 
-struct Graphics {
+pub struct Graphics {
 	pub state: StateRegister,
 	pub palette: [u32; 16],
 	pub screen: [u8 ; 76800], //320x240
@@ -69,7 +69,7 @@ struct Graphics {
 	gl: Option<Gl>,
 }
 	
-struct StateRegister {
+pub struct StateRegister {
 	bg: u8,
 	pub spritew: u8,
 	pub spriteh: u8,
@@ -77,7 +77,7 @@ struct StateRegister {
 	pub vflip: bool,
 }
 
-struct Memory {
+pub struct Memory {
 	memory: [i8; 65536],
 }
 	
@@ -232,7 +232,6 @@ impl Graphics {
 	}
 
 	pub fn draw_screen(&mut self, _: &mut Window, args: &RenderArgs) -> () {
-		let context = &graphics::Context::abs(args.width as f64, args.height as f64);
 		let mut colours: Vec<[f32;4]> = Vec::with_capacity(16);
 		for p in self.palette.iter() {
 			let v: [f32; 4] = [ //Transforms the palette into something Piston accepts
@@ -248,20 +247,21 @@ impl Graphics {
 		let size = self.size as f64;
 		match self.gl {
 			Some(ref mut glc) =>
-				glc.draw([0, 0, args.width as i32, args.height as i32], |_, gl| {
+				glc.draw([0, 0, args.width as i32, args.height as i32], |c, gl| {
 					graphics::clear(colours[0], gl);
 					for (pixel, i) in screen.zip(0..76800u32) {
 						let y: f64 = (i / 320) as f64;
 						let x: f64 = (i % 320) as f64;
-						graphics::rectangle(
+						graphics::Rectangle::new(
 							if *pixel == 0 { //If it is background, use the bg pointer
 								colours[bg as usize]
 							} else {
 								colours[*pixel as usize]
-							},
-							graphics::rectangle::square(x * size, y * size, 1.0 * size),
-							context,
-							gl)
+							}).draw(
+								[x * size, y * size, 1.0 * size, 1.0 * size],
+								&c.draw_state,
+								c.transform,
+								gl);
 					}
 				}),
 			_ => panic!(""),

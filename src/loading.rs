@@ -1,6 +1,6 @@
 use cpu::{Cpu};
 use std::fs::{File};
-use std::io::{ReadExt, Read, Seek};
+use std::io::{Read, Seek};
 use std::io;
 
 pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {

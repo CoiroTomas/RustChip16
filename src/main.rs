@@ -1,3 +1,5 @@
+#![feature(core)]
+#![feature(io)]
 extern crate piston;
 extern crate graphics;
 extern crate opengl_graphics;
