@@ -1,4 +1,5 @@
-use cpu::{Cpu};
+use cpu::Cpu;
+use std::error::Error;
 use std::fs::{File};
 use std::io::{Read, Seek};
 use std::io;

@@ -1,7 +1,7 @@
 [package]
 
 name = "Rust16"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["Tomas Coiro <coirotomas@gmail.com>"]
 
 [[bin]]
@@ -13,30 +13,10 @@ name = "rust-chip16"
 num = "*"
 rand = "*"
 
-[dependencies.gl]
-
-git = "https://github.com/bjz/gl-rs"
-
 [dependencies.piston]
 
 git = "https://github.com/PistonDevelopers/piston.git"
 
-[dependencies.pistoncore-sdl2_window]
+[dependencies.piston_window]
 
-git = "https://github.com/PistonDevelopers/sdl2_window.git"
-
-[dependencies.sdl2]
-
-git = "https://github.com/AngryLawyer/rust-sdl2"
-
-[dependencies.piston2d-graphics]
-
-git = "https://github.com/PistonDevelopers/graphics.git"
-
-[dependencies.piston2d-opengl_graphics]
-
-git = "https://github.com/PistonDevelopers/opengl_graphics.git"
-
-[dependencies.quack]
-
-git = "https://github.com/PistonDevelopers/quack"
+git = "https://github.com/PistonDevelopers/piston_window.git"

@@ -1,18 +1,12 @@
-#![feature(core)]
-#![feature(io)]
 extern crate piston;
-extern crate graphics;
-extern crate opengl_graphics;
-extern crate sdl2_window;
-use std::cell::RefCell;
-use opengl_graphics::OpenGL;
-use sdl2_window::Sdl2Window as Window;
-use cpu::Cpu;
-use std::env;
-use std::path::Path;
+extern crate piston_window;
 mod cpu;
 mod opcode;
 mod loading;
+use piston_window::*;
+use std::env;
+use std::path::Path;
+use cpu::Cpu;
 
 fn main() {
 	let mut args = env::args();
@@ -30,18 +24,11 @@ fn main() {
 	} else {
 		multiplier = 2;
 	}
-	let window = RefCell::new(Window::new(//Window initialized here
-		OpenGL::_3_2,                     //so there's a context for the Gl initialization
-		piston::window::WindowSettings {
-			title: "RustChip16".to_string(),
-			samples: 0,
-			size: [320 * multiplier, 240 * multiplier],
-			fullscreen: false,
-			exit_on_esc: true,
-		}
-	));
-	let mut cpu = Cpu::new(Path::new(&path[..]), multiplier);
-	cpu.start_program(window);
+	let mut window: PistonWindow = WindowSettings::new("RustChip16", [320 * multiplier, 240 * multiplier])
+		.exit_on_esc(true)
+		.into();
+	let mut cpu = cpu::Cpu::new(Path::new(&path[..]), multiplier);
+	cpu.start_program(&mut window);
 }
 
 mod tests {

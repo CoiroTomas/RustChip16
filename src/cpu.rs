@@ -1,47 +1,10 @@
-extern crate quack;
 use std::fs::File;
-use std::cell::RefCell;
-use opcode::{to_opcode};
+use std::error::Error;
+use opcode::{to_opcode, join_bytes, separate_byte, separate_word};
 use opcode;
-use piston::input::Button;
-use piston::input::keyboard::Key;
-use piston::event::{
-	events,
-	PressEvent,
-    ReleaseEvent,
-	RenderArgs,
-	RenderEvent,
-	UpdateEvent,
-	MaxFps,
-	Ups,
-};
-use sdl2_window::Sdl2Window as Window;
-use opengl_graphics::{
-	Gl,
-	OpenGL,
-};
-use self::quack::Set;
+use piston_window::*;
 use std::path::Path;
-use graphics;
 use loading::{load_bin, load_c16};
-
-pub fn join_bytes(ll: i8, hh: i8) -> i16 {
-	((((hh as u8) as u16) << 8) + (ll as u8) as u16) as i16
-}
-
-pub fn separate_word(word: i16) -> (i8, i8) {
-	let word = word as u16;
-	let hh = (word >> 8) as u8;
-	let ll = (word & 0xff) as u8;
-	(hh as i8, ll as i8)
-}
-
-pub fn separate_byte(byte: i8) -> (i8, i8) {
-	let byte = byte as u8;
-	let hh = (byte >> 4) as u8;
-	let ll = byte & 0xf;
-	(hh as i8, ll as i8)
-}
 
 enum Flag {
 	Carry = 1 << 1,
@@ -61,12 +24,11 @@ enum Pad {
 	B = 128,
 }
 
-pub struct Graphics {
+pub struct Chip16Graphics {
 	pub state: StateRegister,
 	pub palette: [u32; 16],
 	pub screen: [u8 ; 76800], //320x240
 	size: u32,
-	gl: Option<Gl>,
 }
 	
 pub struct StateRegister {
@@ -87,7 +49,7 @@ pub struct Cpu {
 	rx: [i16; 16],
 	flags: i8,
 	pub vblank: bool,
-	pub graphics: Graphics,
+	pub graphics: Chip16Graphics,
 	pub memory: Memory,
 }
 
@@ -127,31 +89,29 @@ impl StateRegister {
 	}
 }
 
-impl Graphics {
-	pub fn new(multiplier: u32) -> Graphics {
-		Graphics {
+impl Chip16Graphics {
+	pub fn new(multiplier: u32) -> Chip16Graphics {
+		Chip16Graphics {
 			state: StateRegister::new(),
 			palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
 				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
 			screen: [0; 76800],
 			size: multiplier,
-			gl: Some(Gl::new(OpenGL::_3_2)), //Option to allow tests
 		}
 	}
 	
 	#[allow(dead_code)]
-	pub fn new_test() -> Graphics {
-		Graphics {
+	pub fn new_test() -> Chip16Graphics {
+		Chip16Graphics {
 			state: StateRegister::new(),
 			palette: [0x000000, 0x000000, 0x888888, 0xBF3932, 0xDE7AAE, 0x4C3D21, 0x905F25, 0xE49452,
 				0xEAD979, 0x537A3B, 0xABD54A, 0x252E38, 0x00467F, 0x68ABCC, 0xBCDEE4, 0xFFFFFF],
 			screen: [0; 76800],
 			size: 1,
-			gl: None,
 		}
 	}
 	
-	fn clear(self: &mut Graphics) {
+	fn clear(self: &mut Chip16Graphics) {
 	    self.state.clear();
 		for pixel in self.screen.iter_mut() {
 			*pixel = 0;
@@ -231,7 +191,7 @@ impl Graphics {
 		hit != 0 //If different than zero, put carry
 	}
 
-	pub fn draw_screen(&mut self, _: &mut Window, args: &RenderArgs) -> () {
+	pub fn draw_screen(&mut self, window: &PistonWindow, args: &RenderArgs) -> () {
 		let mut colours: Vec<[f32;4]> = Vec::with_capacity(16);
 		for p in self.palette.iter() {
 			let v: [f32; 4] = [ //Transforms the palette into something Piston accepts
@@ -245,26 +205,21 @@ impl Graphics {
 		let screen = self.screen.iter();
 		let bg = self.state.bg;
 		let size = self.size as f64;
-		match self.gl {
-			Some(ref mut glc) =>
-				glc.draw([0, 0, args.width as i32, args.height as i32], |c, gl| {
-					graphics::clear(colours[0], gl);
-					for (pixel, i) in screen.zip(0..76800u32) {
-						let y: f64 = (i / 320) as f64;
-						let x: f64 = (i % 320) as f64;
-						graphics::Rectangle::new(
-							if *pixel == 0 { //If it is background, use the bg pointer
-								colours[bg as usize]
-							} else {
-								colours[*pixel as usize]
-							}).draw(
-								[x * size, y * size, 1.0 * size, 1.0 * size],
-								&c.draw_state,
-								c.transform,
-								gl);
-					}
-				}),
-			_ => panic!(""),
+		for (pixel, i) in screen.zip(0..76800u32) {
+			let y: f64 = (i / 320) as f64;
+			let x: f64 = (i % 320) as f64;
+			window.draw_2d(|_c, g| {
+				Rectangle::new(
+					if *pixel == 0 { //If it is background, use the bg pointer
+						colours[bg as usize]
+					} else {
+						colours[*pixel as usize]
+					}).draw(
+						[x * size, y * size, 1.0 * size, 1.0 * size],
+						&_c.draw_state,
+						_c.transform,
+						g);
+			});
 		}
 	}
 }
@@ -277,7 +232,7 @@ impl Cpu {
 		};
 		
 		let mut cpu = Cpu {pc: 0, sp: 0xFDF0, rx: [0; 16], flags: 0,
-			vblank: false, graphics: Graphics::new(multiplier),
+			vblank: false, graphics: Chip16Graphics::new(multiplier),
 			memory: Memory::new(),
 		};
 		let ext = file_path.extension().unwrap();
@@ -292,7 +247,7 @@ impl Cpu {
 	#[allow(dead_code)]
 	pub fn new_test() -> Cpu {// "Virgin" cpu for testing
 		Cpu {pc: 0, sp: 0xFDF0, rx: [0; 16], flags: 0,
-			vblank: false, graphics: Graphics::new_test(),
+			vblank: false, graphics: Chip16Graphics::new_test(),
 			memory: Memory::new(),
 		}
 	}
@@ -479,13 +434,11 @@ impl Cpu {
 		op.execute(self, byte1, byte2, byte3);
 	}
 
-	pub fn start_program(&mut self, window: RefCell<Window>) -> () {
+	pub fn start_program(&mut self, window: &mut PistonWindow) -> () {
 		let mut vblank_dt: u8 = 0;
 		let mut controller1: u16 = 0;
 		let mut controller2: u16 = 0;
-		for e in events(&window)
-				.set(MaxFps(60))
-				.set(Ups(120)) {
+		for e in window {
 			if let Some(_) = e.update_args() {
 				if vblank_dt < 2 {
 					for _ in 0..8333 { //Delta time is always this number of steps
@@ -498,7 +451,7 @@ impl Cpu {
 
 			if let Some(r) = e.render_args() {
 				if vblank_dt >= 2 {
-					self.graphics.draw_screen(&mut window.borrow_mut(), &r);
+					self.graphics.draw_screen(&e, &r);
 					self.vblank = true;
 					vblank_dt = 0;
 					self.memory.write_word(0xFFF0, controller1 as i16);
