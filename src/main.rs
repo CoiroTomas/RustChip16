@@ -26,7 +26,8 @@ fn main() {
 	}
 	let mut window: PistonWindow = WindowSettings::new("RustChip16", [320 * multiplier, 240 * multiplier])
 		.exit_on_esc(true)
-		.into();
+		.build()
+		.unwrap();
 	let mut cpu = cpu::Cpu::new(Path::new(&path[..]), multiplier);
 	cpu.start_program(&mut window);
 }
