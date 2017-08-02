@@ -12,6 +12,7 @@ name = "rust-chip16"
 
 num = "*"
 rand = "*"
+image = "*"
 
 [dependencies.piston]
 

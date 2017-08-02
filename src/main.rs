@@ -1,12 +1,12 @@
 extern crate piston;
 extern crate piston_window;
+extern crate image;
 mod cpu;
 mod opcode;
 mod loading;
 use piston_window::*;
 use std::env;
 use std::path::Path;
-use cpu::Cpu;
 
 fn main() {
 	let mut args = env::args();
@@ -22,7 +22,7 @@ fn main() {
 		//Initialize a multiplier
 		multiplier = multi.trim().parse().ok().unwrap();
 	} else {
-		multiplier = 2;
+		multiplier = 1;
 	}
 	let mut window: PistonWindow = WindowSettings::new("RustChip16", [320 * multiplier, 240 * multiplier])
 		.exit_on_esc(true)

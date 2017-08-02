@@ -1,3 +1,4 @@
+use image;
 use std::fs::File;
 use std::error::Error;
 use opcode::{to_opcode, join_bytes, separate_byte, separate_word};
@@ -123,8 +124,10 @@ impl Chip16Graphics {
 	}
 
 	pub fn drw(&mut self, mem: &mut Memory, spr_x: i16, spr_y: i16, spr_address: i16) -> bool {
-		let spritew = self.state.spritew as u16 as i16;
-		let spriteh = self.state.spriteh as u16 as i16;
+		let spritew = self.state.spritew as u32 as i32;
+		let spriteh = self.state.spriteh as u32 as i32;
+		let spr_x = spr_x as i32;
+		let spr_y = spr_y as i32;
 		if spr_x > 319  //If nothing is to be drawn, return
 			|| spr_y > 239
 			|| spritew == 0
@@ -136,8 +139,8 @@ impl Chip16Graphics {
 		}
 
 		let mut hit: u8 = 0;
-		for y in 0i16..spriteh {
-			for x in 0i16..spritew {
+		for y in 0i32..spriteh {
+			for x in 0i32..spritew {
 				let mut x = x;
 				let mut y = y;
 				
@@ -174,53 +177,65 @@ impl Chip16Graphics {
 					y = (spriteh - 1) - y;
 				}
 				
-				let x = x as u16;
-				let y = y as u16;
+				let x = x as u32;
+				let y = y as u32;
 
-				if even_pixel != 0 {  //If the pixel is transparent, doesn't draw
-					hit |= self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x) as usize];
-					self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x) as usize] = even_pixel;
+				let screen_pos = (320 * (spr_y as u32 + y) + spr_x as u32 + x) as usize;
+				if even_pixel != 0 && screen_pos < 76800 {  //If the pixel is transparent, doesn't draw
+					hit |= self.screen[screen_pos];
+					self.screen[screen_pos] = even_pixel;
 				}
 
-				if odd_pixel != 0 {
-					hit |= self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x + 1) as usize];
-					self.screen[(320 * (spr_y as u16 + y) + spr_x as u16 + x + 1) as usize] = odd_pixel;
+				if odd_pixel != 0 && screen_pos + 1 < 76800 {
+					hit |= self.screen[screen_pos + 1];
+					self.screen[screen_pos + 1] = odd_pixel;
 				}
 			}
 		}
 		hit != 0 //If different than zero, put carry
 	}
 
-	pub fn draw_screen(&mut self, window: &PistonWindow, args: &RenderArgs) -> () {
-		let mut colours: Vec<[f32;4]> = Vec::with_capacity(16);
+	pub fn draw_screen(&mut self, mut window: &mut PistonWindow, _: &RenderArgs, input: &Input) -> () {
+		let mut colours: Vec<[u8;4]> = Vec::with_capacity(16);
 		for p in self.palette.iter() {
-			let v: [f32; 4] = [ //Transforms the palette into something Piston accepts
-				((p & 0xFF0000) >> 16) as f32 / 255.0,
-				((p & 0xFF00) >> 8) as f32 / 255.0,
-				(p & 0xFF) as f32 / 255.0,
-				1.0,];
+			let v: [u8; 4] = [ //Transforms the palette into something Piston accepts
+				((p & 0xFF0000) >> 16) as u8,
+				((p & 0x00FF00) >> 8) as u8,
+				(p & 0x0000FF) as u8,
+				255,];
 			colours.push(v);
 		}
-		
+
 		let screen = self.screen.iter();
-		let bg = self.state.bg;
-		let size = self.size as f64;
+		let size = self.size as u32;
+		
+		let mut buffer_image = image::ImageBuffer::new(320 * size, 240 * size);
+		
 		for (pixel, i) in screen.zip(0..76800u32) {
-			let y: f64 = (i / 320) as f64;
-			let x: f64 = (i % 320) as f64;
-			window.draw_2d(|_c, g| {
-				Rectangle::new(
-					if *pixel == 0 { //If it is background, use the bg pointer
-						colours[bg as usize]
-					} else {
-						colours[*pixel as usize]
-					}).draw(
-						[x * size, y * size, 1.0 * size, 1.0 * size],
-						&_c.draw_state,
-						_c.transform,
-						g);
-			});
+			let y: u32 = (i / 320) as u32;
+			let x: u32 = (i % 320) as u32;
+			for j in 0..size {
+				for k in 0..size {
+					buffer_image.put_pixel(x + j, y + k,
+						image::Rgba(if *pixel == 0 {
+							colours[self.state.bg as usize]
+						} else {
+							colours[*pixel as usize]
+					}));
+				}
+			}
 		}
+		
+		let texture = Texture::from_image(
+			&mut window.factory,
+			&buffer_image,
+			&TextureSettings::new(),
+		).unwrap();
+		
+		window.draw_2d(input, |_c, g| {
+			image(&texture, _c.transform, g);
+		});
+		
 	}
 }
 
@@ -434,31 +449,32 @@ impl Cpu {
 		op.execute(self, byte1, byte2, byte3);
 	}
 
-	pub fn start_program(&mut self, window: &mut PistonWindow) -> () {
-		let mut vblank_dt: u8 = 0;
+	pub fn start_program(&mut self, mut window: &mut PistonWindow) -> () {
+		let mut vblank_dt: u64 = 0;
 		let mut controller1: u16 = 0;
 		let mut controller2: u16 = 0;
-		for e in window {
-			if let Some(_) = e.update_args() {
-				if vblank_dt < 2 {
-					for _ in 0..8333 { //Delta time is always this number of steps
+		while let Some(e) = window.next() {
+			
+			if let Some(u) = e.update_args() {
+				if vblank_dt < 16666 {
+					for _ in 0..(u.dt * 1000000.0) as u64 {
 						self.step();
 						self.vblank = false;
 					}
-					vblank_dt += 1;
+					vblank_dt += (u.dt * 1000000.0) as u64;
 				}
 			}
-
+			
 			if let Some(r) = e.render_args() {
-				if vblank_dt >= 2 {
-					self.graphics.draw_screen(&e, &r);
+				if vblank_dt >= 16666 {
+					self.graphics.draw_screen(&mut window, &r, &e);
 					self.vblank = true;
-					vblank_dt = 0;
+					vblank_dt -= 16666;
 					self.memory.write_word(0xFFF0, controller1 as i16);
 					self.memory.write_word(0xFFF2, controller2 as i16);
 				}
 			}
-			
+
 			if let Some(Button::Keyboard(key)) = e.press_args() {
 				match key {
 					Key::NumPad7 => controller1 |= Pad::A as u16,//A1
