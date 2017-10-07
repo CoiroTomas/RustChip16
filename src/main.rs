@@ -22,7 +22,7 @@ fn main() {
 		//Initialize a multiplier
 		multiplier = multi.trim().parse().ok().unwrap();
 	} else {
-		multiplier = 1;
+		multiplier = 2;
 	}
 	let mut window: PistonWindow = WindowSettings::new("RustChip16", [320 * multiplier, 240 * multiplier])
 		.exit_on_esc(true)

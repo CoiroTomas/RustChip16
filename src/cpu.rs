@@ -216,7 +216,7 @@ impl Chip16Graphics {
 			let x: u32 = (i % 320) as u32;
 			for j in 0..size {
 				for k in 0..size {
-					buffer_image.put_pixel(x + j, y + k,
+					buffer_image.put_pixel(size * x + j, size * y + k,
 						image::Rgba(if *pixel == 0 {
 							colours[self.state.bg as usize]
 						} else {
