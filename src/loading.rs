@@ -1,5 +1,4 @@
 use cpu::Cpu;
-use std::error::Error;
 use std::fs::{File};
 use std::io::{Read, Seek};
 use std::io;
@@ -9,7 +8,7 @@ pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {
 	for byte in file.bytes() {
 		let byte = match byte {
 			Ok(number) => number as i8,
-			Err(e) => panic!("{}", e.description()),
+			Err(e) => panic!("{}", e.to_string()),
 		};
 		cpu.memory.write_byte(i, byte);
 		i += 1;
@@ -19,12 +18,12 @@ pub fn load_bin(file: &mut File, cpu: &mut Cpu) -> () {
 pub fn load_c16(file: &mut File, cpu: &mut Cpu) -> () {
 	match file.seek(io::SeekFrom::Start(0)){
 			Ok(ok) => ok,
-			Err(e) => panic!("{}", e.description())
+			Err(e) => panic!("{}", e.to_string())
 	};
 	let mut buf: Vec<u8> = Vec::with_capacity(70000);
 	match file.read_to_end(&mut buf) {
 		Ok(_) => {},
-		Err(e) => panic!("{}", e.description()),
+		Err(e) => panic!("{}", e.to_string()),
 	}
 	
 	let magic_number = ((buf[0] as u32) << 24) +
@@ -55,7 +54,7 @@ pub fn load_c16(file: &mut File, cpu: &mut Cpu) -> () {
 
 	match file.seek(io::SeekFrom::Start(0x10)){
 		Ok(ok) => ok,
-		Err(e) => panic!("{}", e.description())
+		Err(e) => panic!("{}", e.to_string())
 	};
 	
 	load_bin(file, cpu);
@@ -64,7 +63,7 @@ pub fn load_c16(file: &mut File, cpu: &mut Cpu) -> () {
 fn check_rom_size(file: &mut File, rom_size: u32) -> () {
 	let file_size = match file.metadata() {
 		Ok(file_stat) => file_stat.len() - 0x10,
-		Err(e) => panic!("{}", e.description())
+		Err(e) => panic!("{}", e.to_string())
 	};
 	if rom_size as u64 != file_size {
 		panic!("Invalid ROM size, header says {:X} and it is {:X}", rom_size, file_size);
@@ -142,13 +141,13 @@ fn crc32_checksum(file: &mut File, checksum: u32) -> () {
 
 	match file.seek(io::SeekFrom::Start(0x10)){
 		Ok(ok) => ok,
-		Err(e) => panic!("{}", e.description())
+		Err(e) => panic!("{}", e.to_string())
 	};
 
 	for byte in file.bytes() {
 		let byte = match byte {
 			Ok(number) => number as u8,
-			Err(e) => panic!("{}", e.description()),
+			Err(e) => panic!("{}", e.to_string()),
 		};
 		crc = (crc >> 8) ^ table[(crc as u8 ^ byte) as usize];
 	}

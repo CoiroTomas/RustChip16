@@ -1,6 +1,5 @@
 use image;
 use std::fs::File;
-use std::error::Error;
 use opcode::{to_opcode, join_bytes, separate_byte, separate_word};
 use opcode;
 use piston_window::*;
@@ -195,7 +194,7 @@ impl Chip16Graphics {
 		hit != 0 //If different than zero, put carry
 	}
 
-	pub fn draw_screen(&mut self, mut window: &mut PistonWindow, _: &RenderArgs, input: &Input) -> () {
+	pub fn draw_screen(&mut self, window: &mut PistonWindow, _: &RenderArgs, input: &Event) -> () {
 		let mut colours: Vec<[u8;4]> = Vec::with_capacity(16);
 		for p in self.palette.iter() {
 			let v: [u8; 4] = [ //Transforms the palette into something Piston accepts
@@ -227,12 +226,12 @@ impl Chip16Graphics {
 		}
 		
 		let texture = Texture::from_image(
-			&mut window.factory,
+			&mut window.create_texture_context(),
 			&buffer_image,
 			&TextureSettings::new(),
 		).unwrap();
 		
-		window.draw_2d(input, |_c, g| {
+		window.draw_2d(input, |_c, g, _| {
 			image(&texture, _c.transform, g);
 		});
 		
@@ -243,7 +242,7 @@ impl Cpu {
 	pub fn new(file_path: &Path, multiplier: u32) -> Cpu {
 		let mut file = match File::open(&file_path) {
 		    Ok(file) => file,
-   		    Err(e) => panic!("{} {}", e.description(), file_path.display()),
+   		    Err(e) => panic!("{} {}", e.to_string(), file_path.display()),
 		};
 		
 		let mut cpu = Cpu {pc: 0, sp: 0xFDF0, rx: [0; 16], flags: 0,
@@ -427,8 +426,8 @@ impl Cpu {
 			9 => self.has_carry(),
 			0xA => self.has_carry() || self.has_zero(),
 			0xB => (self.has_overflow() == self.has_negative()) && !self.has_zero(),
-			0xC => (self.has_overflow() == self.has_negative()),
-			0xD => (self.has_overflow() != self.has_negative()),
+			0xC => self.has_overflow() == self.has_negative(),
+			0xD => self.has_overflow() != self.has_negative(),
 			0xE => (self.has_overflow() != self.has_negative()) || self.has_zero(),
 			_ => panic!("Failed to find flag: {}", index),
 		}

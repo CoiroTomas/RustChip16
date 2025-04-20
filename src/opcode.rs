@@ -1,11 +1,8 @@
 extern crate num;
 extern crate rand;
 use self::num::integer::Integer;
-use self::rand::distributions::{
-	IndependentSample,
-	Range,
-};
 use std::mem;
+use self::rand::Rng;
 use self::Opcode::*;
 use cpu::Cpu;
 
@@ -275,9 +272,8 @@ fn flip(cpu: &mut Cpu, byte3: i8) -> () {
 }
 
 fn rnd(cpu: &mut Cpu, rx: i8, max_rand: i16) -> () {
-	let between = Range::new(0, max_rand as u16);
-	let mut rng = rand::thread_rng();
-	cpu.set_rx(rx, between.ind_sample(&mut rng) as i16);
+	let mut rng = rand::rng();
+	cpu.set_rx(rx, rng.random_range(0..max_rand as u16) as i16);
 }
 
 fn jmp(cpu: &mut Cpu, new_dir: i16) -> () {

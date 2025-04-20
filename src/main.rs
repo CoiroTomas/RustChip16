@@ -1,4 +1,3 @@
-extern crate piston;
 extern crate piston_window;
 extern crate image;
 mod cpu;
